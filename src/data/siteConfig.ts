@@ -52,11 +52,11 @@ export const siteConfig = {
       checkoutUrl: '',
     },
     {
-      id: 'stroopwafel',
+      id: 'pizza',
       amount: 10,
-      label: 'Dutch Stroopwafels',
-      emoji: '🧇',
-      description: 'Proper Dutch heritage fuel for new features.',
+      label: 'Midnight Pizza Fuel',
+      emoji: '🍕',
+      description: 'Fuels late-night feature builds and weekend tinkering.',
       checkoutUrl: '',
     },
     {
@@ -82,14 +82,14 @@ export const siteConfig = {
     intro:
       "I’m not trying to get hired by Big Tech, and this isn’t a flashy tech resume. I just genuinely love building useful, clean, ad-free apps and browser extensions for my church, my friends, and everyday people.",
     tulipStory:
-      'Why "Tulip Works"? Three simple reasons: I’m Reformed (yes, the TULIP kind!), I’ve got Dutch heritage (hence the Dutch orange and Delft blue), and I legitimately just love tulips.',
+      'Why "Tulip Works"? A quiet nod to Reformed theology (if you know, you know), a genuine love of tulips, and a soft spot for tinkering with ideas until they bloom into something genuinely useful.',
     mission:
       "If you clicked over here from one of my Chrome extensions, Android apps, or Windows/Mac tools — welcome! Everything I make lives right here so you can grab whatever else looks handy, no accounts or tracking required.",
     quickFacts: [
       {
-        emoji: '🌷',
-        title: 'Reformed & Dutch Roots',
-        text: 'Named for TULIP theology, Dutch heritage, and a genuine love of tulips.',
+        emoji: '🛠️',
+        title: 'Tinkerer at Heart',
+        text: 'If a tiny everyday annoyance bugs me twice, there’s a solid chance I’ll build an app to fix it.',
       },
       {
         emoji: '🛡️',

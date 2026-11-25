@@ -167,7 +167,7 @@ export function Hero({
               {/* Fun floating decorative badge */}
               <div className="hidden sm:flex items-center gap-2 absolute -top-4 -right-4 px-3.5 py-2 rounded-2xl bg-[#2857A4] text-white text-xs font-bold shadow-lg shadow-blue-900/25 animate-float-slow">
                 <span>🌷</span>
-                <span>Reformed · Dutch · Indie</span>
+                <span>100% Indie · Zero Bloat</span>
               </div>
             </div>
           </div>
