@@ -80,6 +80,7 @@ export interface InProductionApp {
   progress: number;
   platforms: PlatformId[];
   accentColor: string;
+  icon?: string;
   emoji: string;
   eta?: string;
   githubUrl?: string;

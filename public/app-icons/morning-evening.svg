@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="16 14 76 76" fill="none">
+  <rect x="16" y="14" width="76" height="76" fill="#2F3E5C"/>
+  <!-- Rising sun -->
+  <path fill="#F2B84B" d="M54,28 m-9,0 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0"/>
+  <!-- Open book -->
+  <path fill="#F4ECD8" d="M54,76 C46,70 36,68 28,69 L28,46 C36,45 46,47 54,53 Z"/>
+  <path fill="#E6D9B8" d="M54,76 C62,70 72,68 80,69 L80,46 C72,45 62,47 54,53 Z"/>
+</svg>

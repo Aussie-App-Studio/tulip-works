@@ -55,14 +55,25 @@ export function InProduction() {
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-black/5 dark:border-white/10"
-                    style={{ backgroundColor: `${item.accentColor}1A` }}
-                  >
-                    <span role="img" aria-label={item.name}>
-                      {item.emoji}
-                    </span>
-                  </div>
+                  {item.icon ? (
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-sm shrink-0">
+                      <img
+                        src={item.icon}
+                        alt={`${item.name} icon`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-black/5 dark:border-white/10 shrink-0"
+                      style={{ backgroundColor: `${item.accentColor}1A` }}
+                    >
+                      <span role="img" aria-label={item.name}>
+                        {item.emoji}
+                      </span>
+                    </div>
+                  )}
 
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
