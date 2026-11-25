@@ -9,12 +9,14 @@ import {
   X,
 } from 'lucide-react';
 import type { GitHubReleaseInfo, TulipApp } from '../types';
+import type { DetectedOS } from '../hooks/useDetectedOS';
 import { AppIcon, PlatformBadge } from './PlatformBadge';
 import { resolveDownload } from '../hooks/useGitHubReleases';
 
 interface AppModalProps {
   app: TulipApp | null;
   releases: Record<string, GitHubReleaseInfo>;
+  detectedOS: { os: DetectedOS; label: string };
   onClose: () => void;
   onDonateForApp: (app: TulipApp) => void;
   onCheckoutApp: (app: TulipApp) => void;
@@ -23,6 +25,7 @@ interface AppModalProps {
 export function AppModal({
   app,
   releases,
+  detectedOS,
   onClose,
   onDonateForApp,
   onCheckoutApp,
@@ -138,46 +141,65 @@ export function AppModal({
         {app.downloads.length > 0 && !isPaid && (
           <div className="mb-6">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-              Direct Downloads (Latest Release)
+              Direct Downloads (Latest GitHub Release)
             </h4>
             <div className="space-y-2.5">
-              {app.downloads.map((dl) => {
-                const resolved = resolveDownload(dl, releases);
-                return (
-                  <a
-                    key={dl.label}
-                    href={resolved.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-[#171C27] border border-slate-200 dark:border-slate-700 hover:border-[#EA7824] group transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-[#EA7824] transition-colors flex flex-wrap items-center gap-2">
-                        <span>{dl.label}</span>
-                        {resolved.version && (
-                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                            {resolved.version}
-                          </span>
+              {[...app.downloads]
+                .sort((a, b) =>
+                  a.platform === detectedOS.os ? -1 : b.platform === detectedOS.os ? 1 : 0
+                )
+                .map((dl) => {
+                  const resolved = resolveDownload(dl, releases);
+                  const isMyOS = dl.platform === detectedOS.os;
+                  return (
+                    <a
+                      key={dl.label}
+                      href={resolved.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center justify-between gap-3 p-3.5 rounded-2xl border group transition-colors ${
+                        isMyOS
+                          ? 'bg-orange-50/70 dark:bg-orange-500/10 border-[#EA7824]/50 hover:border-[#EA7824]'
+                          : 'bg-slate-50 dark:bg-[#171C27] border-slate-200 dark:border-slate-700 hover:border-[#EA7824]'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-[#EA7824] transition-colors flex flex-wrap items-center gap-2">
+                          <span>{dl.label}</span>
+                          {isMyOS && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EA7824] text-white">
+                              For your {detectedOS.label}
+                            </span>
+                          )}
+                          {resolved.version && (
+                            <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                              {resolved.version}
+                            </span>
+                          )}
+                          {resolved.fileSize && (
+                            <span className="font-mono text-[11px] text-slate-500">
+                              {resolved.fileSize}
+                            </span>
+                          )}
+                        </div>
+                        {dl.subtitle && (
+                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            {dl.subtitle}
+                          </div>
                         )}
-                        {resolved.fileSize && (
-                          <span className="font-mono text-[11px] text-slate-500">
-                            {resolved.fileSize}
-                          </span>
+                        {dl.installHint && (
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                            💡 {dl.installHint}
+                          </div>
                         )}
                       </div>
-                      {dl.subtitle && (
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          {dl.subtitle}
-                        </div>
-                      )}
-                    </div>
-                    <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#EA7824] text-white shrink-0">
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Get</span>
-                    </span>
-                  </a>
-                );
-              })}
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#EA7824] text-white shrink-0">
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Get</span>
+                      </span>
+                    </a>
+                  );
+                })}
             </div>
           </div>
         )}

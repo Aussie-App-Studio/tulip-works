@@ -1,21 +1,25 @@
 import { useMemo, useState } from 'react';
 import {
-  ArrowUpRight,
   Download,
+  ExternalLink,
   Heart,
   Search,
+  ShoppingBag,
   Sparkles,
   Tag,
   X,
 } from 'lucide-react';
-import { AppIcon, PlatformBadge } from './PlatformBadge';
-import type { AppCategory, GitHubReleaseInfo, TulipApp } from '../types';
+import { AppIcon, PlatformBadge, PLATFORM_META } from './PlatformBadge';
+import type { AppCategory, DirectDownload, GitHubReleaseInfo, TulipApp } from '../types';
+import type { DetectedOS } from '../hooks/useDetectedOS';
 import { resolveDownload } from '../hooks/useGitHubReleases';
 
 interface AppCatalogProps {
   apps: TulipApp[];
   releases: Record<string, GitHubReleaseInfo>;
+  detectedOS: { os: DetectedOS; label: string };
   onSelectApp: (app: TulipApp) => void;
+  onCheckoutApp: (app: TulipApp) => void;
 }
 
 const CATEGORY_TABS: { id: AppCategory; label: string; emoji: string }[] = [
@@ -27,7 +31,19 @@ const CATEGORY_TABS: { id: AppCategory; label: string; emoji: string }[] = [
   { id: 'everyday', label: 'Everyday Tools', emoji: '🛠️' },
 ];
 
-export function AppCatalog({ apps, releases, onSelectApp }: AppCatalogProps) {
+function pickBestDownload(app: TulipApp, detectedOS: DetectedOS): DirectDownload | null {
+  if (app.downloads.length === 0) return null;
+  const osMatch = app.downloads.find((d) => d.platform === detectedOS);
+  return osMatch || app.downloads[0];
+}
+
+export function AppCatalog({
+  apps,
+  releases,
+  detectedOS,
+  onSelectApp,
+  onCheckoutApp,
+}: AppCatalogProps) {
   const [activeCategory, setActiveCategory] = useState<AppCategory>('all');
   const [query, setQuery] = useState('');
 
@@ -78,7 +94,8 @@ export function AppCatalog({ apps, releases, onSelectApp }: AppCatalogProps) {
               Apps &amp; Extensions I&apos;ve Made
             </h2>
             <p className="text-slate-600 dark:text-slate-300 max-w-xl">
-              Click any app for full details, quick setup instructions, and direct downloads.
+              Download directly from any card — or click a tile for all OS options, install tips,
+              and details.
             </p>
           </div>
 
@@ -161,9 +178,12 @@ export function AppCatalog({ apps, releases, onSelectApp }: AppCatalogProps) {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredApps.map((app) => {
-              const primaryDownload = app.downloads[0]
-                ? resolveDownload(app.downloads[0], releases)
-                : null;
+              const bestDl = pickBestDownload(app, detectedOS.os);
+              const resolvedDl = bestDl ? resolveDownload(bestDl, releases) : null;
+              const primaryStore =
+                app.storeLinks.find((l) => l.store !== 'github') || app.storeLinks[0];
+              const isPaid = app.pricing.type === 'paid';
+              const extraDownloadsCount = Math.max(0, app.downloads.length - 1);
 
               return (
                 <article
@@ -184,7 +204,7 @@ export function AppCatalog({ apps, releases, onSelectApp }: AppCatalogProps) {
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <AppIcon app={app} size="md" />
                       <div className="flex flex-col items-end gap-1.5">
-                        {app.pricing.type === 'paid' ? (
+                        {isPaid ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300 border border-orange-200 dark:border-orange-500/30">
                             <Tag className="w-3 h-3" />${app.pricing.priceUsd}
                           </span>
@@ -216,32 +236,71 @@ export function AppCatalog({ apps, releases, onSelectApp }: AppCatalogProps) {
                     </p>
                   </div>
 
-                  {/* Bottom row: Platforms + Quick Action */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
+                  {/* Bottom row: Platforms + Direct Download / Store Action */}
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700/60 space-y-3.5">
                     <div className="flex flex-wrap gap-1.5">
                       {app.platforms.map((platform) => (
                         <PlatformBadge key={platform} platform={platform} compact />
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs font-bold">
-                      {primaryDownload ? (
-                        <span className="inline-flex items-center gap-1.5 text-[#2857A4] dark:text-[#6AA2FF]">
-                          <Download className="w-3.5 h-3.5" />
-                          <span>
-                            Direct Download
-                            {primaryDownload.version ? ` (${primaryDownload.version})` : ''}
+                    <div className="flex items-center gap-2">
+                      {isPaid ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCheckoutApp(app);
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-[#EA7824] hover:bg-[#D46515] text-white shadow-xs transition-colors cursor-pointer"
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                          <span>Buy (${app.pricing.priceUsd})</span>
+                        </button>
+                      ) : bestDl && resolvedDl ? (
+                        <a
+                          href={resolvedDl.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-[#EA7824] hover:bg-[#D46515] text-white shadow-xs transition-colors truncate"
+                          title={`Download ${bestDl.label}${resolvedDl.fileSize ? ` (${resolvedDl.fileSize})` : ''}`}
+                        >
+                          <Download className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">
+                            {bestDl.platform === 'chrome'
+                              ? 'Download .zip'
+                              : `Download (${PLATFORM_META[bestDl.platform].short})`}
                           </span>
-                        </span>
-                      ) : (
-                        <span className="text-slate-500 dark:text-slate-400">
-                          {app.storeLinks[0]?.label || 'View details'}
-                        </span>
-                      )}
+                          {resolvedDl.fileSize && (
+                            <span className="font-mono text-[10px] opacity-85 hidden sm:inline">
+                              {resolvedDl.fileSize}
+                            </span>
+                          )}
+                        </a>
+                      ) : primaryStore ? (
+                        <a
+                          href={primaryStore.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-[#2857A4] hover:bg-[#1E4483] text-white shadow-xs transition-colors truncate"
+                        >
+                          <span className="truncate">{primaryStore.label}</span>
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        </a>
+                      ) : null}
 
-                      <span className="inline-flex items-center gap-0.5 text-[#EA7824] group-hover:translate-x-0.5 transition-transform">
-                        Get it <ArrowUpRight className="w-3.5 h-3.5" />
-                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectApp(app);
+                        }}
+                        className="px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shrink-0"
+                      >
+                        {extraDownloadsCount > 0 ? `+${extraDownloadsCount} OS` : 'Details'}
+                      </button>
                     </div>
                   </div>
                 </article>

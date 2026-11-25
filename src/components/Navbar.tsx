@@ -11,7 +11,6 @@ interface NavbarProps {
 
 const NAV_LINKS = [
   { href: '#apps', label: 'Apps' },
-  { href: '#downloads', label: 'Downloads' },
   { href: '#in-production', label: 'In Production' },
   { href: '#about', label: 'About Me' },
 ];

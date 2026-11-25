@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AppCatalog } from './components/AppCatalog';
-import { DownloadHub } from './components/DownloadHub';
 import { InProduction } from './components/InProduction';
 import { SupportSection } from './components/SupportSection';
 import { AboutSection } from './components/AboutSection';
@@ -55,7 +54,6 @@ export function App() {
 
       <main className="flex-1">
         <Hero
-          detectedOS={detectedOS}
           featuredApps={featuredApps}
           totalLiveApps={TULIP_APPS.length}
           totalWipApps={IN_PRODUCTION_APPS.length}
@@ -64,12 +62,6 @@ export function App() {
         />
 
         <AppCatalog
-          apps={TULIP_APPS}
-          releases={releases}
-          onSelectApp={setSelectedApp}
-        />
-
-        <DownloadHub
           apps={TULIP_APPS}
           releases={releases}
           detectedOS={detectedOS}
@@ -93,6 +85,7 @@ export function App() {
       <AppModal
         app={selectedApp}
         releases={releases}
+        detectedOS={detectedOS}
         onClose={() => setSelectedApp(null)}
         onDonateForApp={(app) => {
           setSelectedApp(null);
