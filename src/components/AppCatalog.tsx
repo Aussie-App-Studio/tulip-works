@@ -197,47 +197,72 @@ export function AppCatalog({
                   }}
                   tabIndex={0}
                   role="button"
-                  className="tulip-card group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-[#212734] border-2 border-slate-200/85 dark:border-slate-700/75 hover:border-[#EA7824] dark:hover:border-[#EA7824] p-6 shadow-sm hover:shadow-xl hover:shadow-slate-900/8 dark:hover:shadow-black/35 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#EA7824]"
+                  className="tulip-card group relative flex flex-col justify-between rounded-3xl bg-white dark:bg-[#212734] border-2 border-slate-200/85 dark:border-slate-700/75 hover:border-[#EA7824] dark:hover:border-[#EA7824] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-900/10 dark:hover:shadow-black/40 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#EA7824]"
                 >
                   <div>
-                    {/* Top row: Icon + Pricing/Feature Badge */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <AppIcon app={app} size="md" />
-                      <div className="flex flex-col items-end gap-1.5">
+                    {/* Visual Banner Header */}
+                    <div className="relative h-40 w-full overflow-hidden bg-slate-100 dark:bg-[#171C27] border-b border-slate-100 dark:border-slate-800">
+                      {app.banner ? (
+                        <img
+                          src={app.banner}
+                          alt={`${app.name} preview`}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div
+                          className={`w-full h-full bg-gradient-to-br ${app.accentGradient} relative flex items-center justify-center`}
+                        >
+                          <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
+                          <div className="relative transform group-hover:scale-110 transition-transform duration-300 shadow-2xl rounded-2xl">
+                            <AppIcon app={app} size="lg" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Floating price pill in top-right of banner */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1.5">
                         {isPaid ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300 border border-orange-200 dark:border-orange-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-500 text-white shadow-md">
                             <Tag className="w-3 h-3" />${app.pricing.priceUsd}
                           </span>
                         ) : app.pricing.type === 'pwyw' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/25">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600/95 text-white backdrop-blur-xs shadow-md">
                             <Heart className="w-3 h-3" />
                             Free · Tip Optional
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-900/75 text-white backdrop-blur-xs shadow-sm">
                             Free
-                          </span>
-                        )}
-
-                        {app.badge && (
-                          <span className="text-[11px] font-bold text-[#2857A4] dark:text-sky-300">
-                            {app.badge}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Title & Tagline */}
-                    <h3 className="font-display font-extrabold text-xl text-slate-900 dark:text-white group-hover:text-[#EA7824] transition-colors mb-1.5">
-                      {app.name}
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-                      {app.tagline}
-                    </p>
+                    <div className="p-5 pb-3">
+                      {/* Icon + Title row */}
+                      <div className="flex items-center gap-3.5 mb-2.5">
+                        <AppIcon app={app} size="sm" />
+                        <div className="min-w-0">
+                          <h3 className="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white group-hover:text-[#EA7824] transition-colors leading-tight truncate">
+                            {app.name}
+                          </h3>
+                          {app.badge && (
+                            <span className="text-[11px] font-bold text-[#2857A4] dark:text-sky-300">
+                              {app.badge}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {app.tagline}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Bottom row: Platforms + Direct Download / Store Action */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-700/60 space-y-3.5">
+                  <div className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
                     <div className="flex flex-wrap gap-1.5">
                       {app.platforms.map((platform) => (
                         <PlatformBadge key={platform} platform={platform} compact />

@@ -11,6 +11,7 @@ interface NavbarProps {
 
 const NAV_LINKS = [
   { href: '#apps', label: 'Apps' },
+  { href: '#tulip-run', label: 'Tulip Run 🌷' },
   { href: '#in-production', label: 'In Production' },
   { href: '#about', label: 'About Me' },
 ];

@@ -53,6 +53,8 @@ export interface TulipApp {
   description: string;
   highlights: string[];
   icon?: string;
+  /** Optional wide feature graphic / screenshot shown on the card & modal */
+  banner?: string;
   /** Fallback gradient & emoji/icon key when no PNG icon exists */
   accentGradient: string;
   fallbackEmoji?: string;

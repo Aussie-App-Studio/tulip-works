@@ -64,10 +64,21 @@ export function AppModal({
           type="button"
           onClick={onClose}
           aria-label="Close app details"
-          className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-md backdrop-blur-xs transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
+
+        {/* Optional Banner Preview */}
+        {app.banner && (
+          <div className="-mx-6 -mt-6 sm:-mx-8 sm:-mt-8 mb-6 h-48 sm:h-56 overflow-hidden rounded-t-3xl border-b border-slate-200 dark:border-slate-700 bg-slate-900">
+            <img
+              src={app.banner}
+              alt={`${app.name} banner`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-start gap-4 pr-10 mb-5">

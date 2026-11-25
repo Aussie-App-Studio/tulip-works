@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { TulipRunner } from './components/TulipRunner';
 import { AppCatalog } from './components/AppCatalog';
 import { InProduction } from './components/InProduction';
 import { SupportSection } from './components/SupportSection';
@@ -68,6 +69,8 @@ export function App() {
           onSelectApp={setSelectedApp}
           onCheckoutApp={handleCheckoutApp}
         />
+
+        <TulipRunner theme={theme} />
 
         <InProduction />
 

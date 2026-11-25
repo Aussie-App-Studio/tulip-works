@@ -1,4 +1,4 @@
-import { ArrowDown, ShieldCheck, Sparkles, Sprout, SunMoon } from 'lucide-react';
+import { ArrowDown, Gamepad2, ShieldCheck, Sparkles, SunMoon } from 'lucide-react';
 import { TulipLogo } from './TulipLogo';
 import { AppIcon } from './PlatformBadge';
 import type { TulipApp } from '../types';
@@ -78,11 +78,11 @@ export function Hero({
               </a>
 
               <a
-                href="#in-production"
+                href="#tulip-run"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-base bg-white dark:bg-[#212734] text-slate-900 dark:text-white border-2 border-slate-200 dark:border-slate-700 hover:border-[#2857A4] dark:hover:border-[#EA7824] shadow-xs active:scale-[0.98] transition-all"
               >
-                <Sprout className="w-4 h-4 text-emerald-500" />
-                <span>See What&apos;s in Production</span>
+                <Gamepad2 className="w-4 h-4 text-[#2857A4] dark:text-[#EA7824]" />
+                <span>Play Tulip Run</span>
               </a>
             </div>
 
