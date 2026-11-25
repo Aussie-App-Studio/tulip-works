@@ -16,6 +16,7 @@ interface TulipRunnerProps {
 
 type GameStatus = 'idle' | 'playing' | 'gameover';
 type ObstacleKind = 'ad' | 'cookie' | 'bug' | 'tracker';
+type BonusKind = 'calvin' | 'luther' | 'spurgeon' | 'knox' | 'theses' | 'scriptura';
 
 interface Obstacle {
   kind: ObstacleKind;
@@ -28,12 +29,24 @@ interface Obstacle {
 }
 
 interface Bonus {
+  kind: BonusKind;
   x: number;
   y: number;
   r: number;
   collected: boolean;
   phase: number;
 }
+
+const BONUS_META: Record<BonusKind, { popup: string; color: string }> = {
+  calvin: { popup: '+50 Predestined!', color: '#EA7824' },
+  luther: { popup: '+50 Here I Stand!', color: '#2857A4' },
+  spurgeon: { popup: '+50 Spurgeon!', color: '#D97706' },
+  knox: { popup: '+50 Knox!', color: '#0D9488' },
+  theses: { popup: '+50 Nailed It!', color: '#EA7824' },
+  scriptura: { popup: '+50 Sola Scriptura!', color: '#CA8A04' },
+};
+
+const BONUS_KINDS: BonusKind[] = ['calvin', 'luther', 'spurgeon', 'theses', 'knox', 'scriptura'];
 
 interface Particle {
   x: number;
@@ -489,6 +502,263 @@ function drawObstacle(
   ctx.restore();
 }
 
+/**
+ * Draws crisp cartoon Reformation collectibles (Calvin, Luther, Spurgeon, Knox,
+ * 95 Theses scroll, and Open Scripture) inside a soft golden glow halo.
+ */
+function drawReformationBonus(
+  ctx: CanvasRenderingContext2D,
+  b: Bonus,
+  t: number,
+  isDark: boolean
+) {
+  const bob = Math.sin(t * 0.008 + b.phase) * 3;
+  const cx = b.x;
+  const cy = b.y + bob;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Soft golden aura so players immediately recognize it as a collectible
+  ctx.fillStyle = isDark ? 'rgba(251, 191, 36, 0.18)' : 'rgba(251, 191, 36, 0.28)';
+  ctx.beginPath();
+  ctx.arc(0, 0, b.r + 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = isDark ? '#242B35' : '#FFFDF7';
+  ctx.strokeStyle = '#F59E0B';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, b.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  if (b.kind === 'calvin') {
+    // John Calvin: iconic black Geneva Tudor cap + long pointed beard!
+    // Face
+    ctx.fillStyle = '#FDE2C4';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 8.5, 9.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Long pointed Geneva beard (gray-brown)
+    ctx.fillStyle = '#6B5B4F';
+    ctx.beginPath();
+    ctx.moveTo(-8, 1);
+    ctx.quadraticCurveTo(-8, 10, 0, 15);
+    ctx.quadraticCurveTo(8, 10, 8, 1);
+    ctx.quadraticCurveTo(0, 4, -8, 1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Mustache
+    ctx.fillStyle = '#57483D';
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 5, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Black Tudor cap with side ear flaps
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.ellipse(0, -8.5, 11.5, 4.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(-9.5, -8.5, 3, 9);
+    ctx.fillRect(6.5, -8.5, 3, 9);
+
+    // Eyes & serious scholar brows
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.arc(-3, -1.5, 1.3, 0, Math.PI * 2);
+    ctx.arc(3, -1.5, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#3F3F46';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-5, -4);
+    ctx.lineTo(-1, -3.3);
+    ctx.moveTo(1, -3.3);
+    ctx.lineTo(5, -4);
+    ctx.stroke();
+  } else if (b.kind === 'luther') {
+    // Martin Luther: round cheerful cheeks + classic black German reformer beret!
+    // Collar peek
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.arc(0, 11, 8, Math.PI, 0);
+    ctx.fill();
+
+    // Round face
+    ctx.fillStyle = '#FCD9B6';
+    ctx.beginPath();
+    ctx.ellipse(0, 1, 9.5, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rosy German cheeks
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.32)';
+    ctx.beginPath();
+    ctx.arc(-5.5, 3, 2.3, 0, Math.PI * 2);
+    ctx.arc(5.5, 3, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Side brown hair tufts
+    ctx.fillStyle = '#5C3A21';
+    ctx.beginPath();
+    ctx.arc(-8.5, -1, 2.8, 0, Math.PI * 2);
+    ctx.arc(8.5, -1, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tilted puffy black scholar beret
+    ctx.fillStyle = '#1E293B';
+    ctx.beginPath();
+    ctx.ellipse(-1, -8, 12, 5.2, -0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bold eyes & determined grin
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.arc(-3.2, -0.5, 1.4, 0, Math.PI * 2);
+    ctx.arc(3.2, -0.5, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#7C2D12';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(0, 3.2, 3.2, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+  } else if (b.kind === 'spurgeon') {
+    // Charles Spurgeon: glorious bushy Victorian beard + cozy warmth!
+    // Face
+    ctx.fillStyle = '#FDE0C2';
+    ctx.beginPath();
+    ctx.ellipse(0, -1, 9, 8.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Parted Victorian hair
+    ctx.fillStyle = '#3B281E';
+    ctx.beginPath();
+    ctx.arc(0, -5, 9.5, Math.PI, 0);
+    ctx.fill();
+
+    // Magnificent wide Victorian full beard
+    ctx.fillStyle = '#3B281E';
+    ctx.beginPath();
+    ctx.moveTo(-10, -1);
+    ctx.quadraticCurveTo(-12, 11, 0, 14.5);
+    ctx.quadraticCurveTo(12, 11, 10, -1);
+    ctx.quadraticCurveTo(0, 4.5, -10, -1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Friendly twinkling eyes + little smile peeking through beard
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.arc(-3.2, -2, 1.3, 0, Math.PI * 2);
+    ctx.arc(3.2, -2, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FDE0C2';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(0, 3, 2.5, 0.1 * Math.PI, 0.9 * Math.PI);
+    ctx.stroke();
+  } else if (b.kind === 'knox') {
+    // John Knox: flat Scottish bonnet + legendary long flowing white beard!
+    ctx.fillStyle = '#FDE2C4';
+    ctx.beginPath();
+    ctx.ellipse(0, -1, 8.5, 8.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Epic flowing silver-white beard
+    ctx.fillStyle = '#E2E8F0';
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-8.5, 0);
+    ctx.quadraticCurveTo(-9.5, 11, 0, 16);
+    ctx.quadraticCurveTo(9.5, 11, 8.5, 0);
+    ctx.quadraticCurveTo(0, 4, -8.5, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Scottish bonnet
+    ctx.fillStyle = '#1E293B';
+    ctx.beginPath();
+    ctx.ellipse(0, -8.5, 12.5, 4.2, 0.08, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Fierce bright eyes
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.arc(-3, -2, 1.3, 0, Math.PI * 2);
+    ctx.arc(3, -2, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (b.kind === 'theses') {
+    // The 95 Theses parchment scroll pinned with a tiny nail!
+    drawRoundedRect(ctx, -9, -11, 18, 22, 3);
+    ctx.fillStyle = '#FEF3C7';
+    ctx.fill();
+    ctx.strokeStyle = '#B45309';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Tiny top nail
+    ctx.fillStyle = '#64748B';
+    ctx.beginPath();
+    ctx.arc(0, -8, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bold "95"
+    ctx.fillStyle = '#9A3412';
+    ctx.font = '900 11px "Bricolage Grotesque", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('95', 0, 1);
+
+    // Tiny text lines underneath
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-5, 7);
+    ctx.lineTo(5, 7);
+    ctx.stroke();
+  } else {
+    // Sola Scriptura: Open golden Bible with red ribbon bookmark!
+    // Leather cover
+    drawRoundedRect(ctx, -12, -7, 24, 15, 2.5);
+    ctx.fillStyle = '#78350F';
+    ctx.fill();
+
+    // Open cream pages
+    ctx.fillStyle = '#FFFBEB';
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.quadraticCurveTo(-5, 4, -10, 5);
+    ctx.lineTo(-10, -6);
+    ctx.quadraticCurveTo(-5, -7, 0, -5);
+    ctx.quadraticCurveTo(5, -7, 10, -6);
+    ctx.lineTo(10, 5);
+    ctx.quadraticCurveTo(5, 4, 0, 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Spine crease & red ribbon
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -5);
+    ctx.lineTo(0, 6);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#DC2626';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 5);
+    ctx.lineTo(2, 11);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 export function TulipRunner({ theme }: TulipRunnerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -803,17 +1073,19 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
           g.spawnTimer = minGap + Math.random() * 0.65;
         }
 
-        // Spawn bonus golden sun/spark
+        // Spawn Reformation cartoon bonus collectibles (Calvin, Luther, Spurgeon, Knox, 95 Theses, Scripture)
         g.bonusTimer -= dt;
         if (g.bonusTimer <= 0) {
+          const kind = BONUS_KINDS[Math.floor(Math.random() * BONUS_KINDS.length)];
           g.bonuses.push({
+            kind,
             x: LOGICAL_W + 40,
-            y: GROUND_Y - 82 - Math.random() * 34,
-            r: 12,
+            y: GROUND_Y - 84 - Math.random() * 34,
+            r: 17,
             collected: false,
             phase: Math.random() * 6,
           });
-          g.bonusTimer = 3.8 + Math.random() * 3.4;
+          g.bonusTimer = 3.2 + Math.random() * 2.8;
         }
 
         // Update obstacles & forgiving hitbox collision
@@ -861,17 +1133,18 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
           if (!b.collected) {
             const dx = PLAYER_X + PLAYER_W / 2 - b.x;
             const dy = g.playerY - curH / 2 - b.y;
-            if (dx * dx + dy * dy < (b.r + 20) * (b.r + 20)) {
+            if (dx * dx + dy * dy < (b.r + 22) * (b.r + 22)) {
               b.collected = true;
               g.bonusPoints += 50;
+              const meta = BONUS_META[b.kind];
               playSynth(audioCtxRef, mutedRef.current, 'bonus');
-              spawnDust(b.x, b.y, 12, ['#FBBF24', '#EA7824', '#38BDF8']);
+              spawnDust(b.x, b.y, 12, ['#FBBF24', '#EA7824', '#2857A4']);
               g.floatingTexts.push({
-                x: b.x,
-                y: b.y - 8,
-                text: '+50 🌷',
-                life: 0.9,
-                color: '#F59E0B',
+                x: Math.max(95, Math.min(LOGICAL_W - 95, b.x)),
+                y: b.y - 12,
+                text: meta.popup,
+                life: 1.05,
+                color: meta.color,
               });
             }
           }
@@ -975,29 +1248,9 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
         ctx.fillRect(x + 26, GROUND_Y + 24, 8, 2.5);
       }
 
-      // Draw bonuses (glowing golden coin/spark)
+      // Draw Reformation cartoon collectibles
       for (const b of g.bonuses) {
-        const pulse = Math.sin(now * 0.008 + b.phase) * 2;
-        ctx.save();
-        ctx.fillStyle = 'rgba(251, 191, 36, 0.25)';
-        ctx.beginPath();
-        ctx.arc(b.x, b.y + pulse, b.r + 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#FBBF24';
-        ctx.strokeStyle = '#EA7824';
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.arc(b.x, b.y + pulse, b.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('★', b.x, b.y + pulse + 0.5);
-        ctx.restore();
+        drawReformationBonus(ctx, b, now, isDark);
       }
 
       // Draw obstacles
@@ -1069,7 +1322,8 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
                   </span>
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Leap over pop-up ads, cookie banners &amp; bugs. Grab ★ for +50!
+                  Leap over pop-up ads, cookie banners &amp; bugs. Grab Calvin, Luther, Spurgeon
+                  &amp; the 95 Theses for +50!
                 </p>
               </div>
             </div>
