@@ -51,6 +51,7 @@ export function InProduction() {
           {IN_PRODUCTION_APPS.map((item) => (
             <div
               key={item.id}
+              data-tulip-perch="card"
               className="tulip-card flex flex-col justify-between rounded-3xl bg-white dark:bg-[#212734] border-2 border-dashed border-slate-300/90 dark:border-slate-700/80 hover:border-solid hover:border-[#2857A4] dark:hover:border-[#EA7824] p-6"
             >
               <div>

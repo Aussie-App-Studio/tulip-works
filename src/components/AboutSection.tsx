@@ -62,6 +62,7 @@ export function AboutSection() {
               {about.quickFacts.map((fact) => (
                 <div
                   key={fact.title}
+                  data-tulip-perch="card"
                   className="p-4 rounded-2xl bg-white dark:bg-[#212734] border border-slate-200/85 dark:border-slate-700/75 shadow-xs"
                 >
                   <div className="text-2xl mb-2">{fact.emoji}</div>

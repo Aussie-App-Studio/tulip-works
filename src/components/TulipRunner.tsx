@@ -1098,7 +1098,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
           </div>
 
           {/* Interactive Canvas Container */}
-          <div className="relative select-none touch-none">
+          <div data-tulip-perch="game" className="relative select-none touch-none">
             <canvas
               ref={canvasRef}
               tabIndex={0}

@@ -9,6 +9,7 @@ import { AboutSection } from './components/AboutSection';
 import { Footer } from './components/Footer';
 import { AppModal } from './components/AppModal';
 import { DonateModal, type DonateModalState } from './components/DonateModal';
+import { TulipBuddy } from './components/TulipBuddy';
 import { IN_PRODUCTION_APPS, TULIP_APPS } from './data/apps';
 import { useTheme } from './hooks/useTheme';
 import { useDetectedOS } from './hooks/useDetectedOS';
@@ -46,7 +47,8 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative min-h-screen flex flex-col">
+      <TulipBuddy />
       <Navbar
         theme={theme}
         onToggleTheme={toggleTheme}

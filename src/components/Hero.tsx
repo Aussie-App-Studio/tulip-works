@@ -103,7 +103,10 @@ export function Hero({
           <div className="lg:col-span-5">
             <div className="relative mx-auto max-w-md">
               {/* Main Logo Card — matches exact white (#FFFFFF) / dark (#242B35) logo background */}
-              <div className="relative rounded-3xl bg-white dark:bg-[#242B35] border-2 border-slate-200/90 dark:border-slate-700/80 shadow-2xl shadow-slate-900/8 dark:shadow-black/40 p-6 sm:p-7">
+              <div
+                data-tulip-perch="hero"
+                className="relative rounded-3xl bg-white dark:bg-[#242B35] border-2 border-slate-200/90 dark:border-slate-700/80 shadow-2xl shadow-slate-900/8 dark:shadow-black/40 p-6 sm:p-7"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#2857A4] dark:text-sky-300 bg-blue-50 dark:bg-blue-500/15 px-2.5 py-1 rounded-full">
                     Tulip Works HQ

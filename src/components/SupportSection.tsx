@@ -19,7 +19,10 @@ export function SupportSection({ onSelectTier }: SupportSectionProps) {
       className="py-16 sm:py-22 scroll-mt-20 bg-gradient-to-b from-orange-50/70 via-[#FAF9F6] to-[#FAF9F6] dark:from-[#1C2230] dark:via-[#151A24] dark:to-[#151A24] border-t border-slate-200/70 dark:border-slate-800/70"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-[#212734] border-2 border-slate-200/90 dark:border-slate-700/80 shadow-xl shadow-orange-900/5 dark:shadow-black/30 p-7 sm:p-10 lg:p-12">
+        <div
+          data-tulip-perch="card"
+          className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-[#212734] border-2 border-slate-200/90 dark:border-slate-700/80 shadow-xl shadow-orange-900/5 dark:shadow-black/30 p-7 sm:p-10 lg:p-12"
+        >
           {/* Decorative Corner Accent */}
           <div
             aria-hidden="true"

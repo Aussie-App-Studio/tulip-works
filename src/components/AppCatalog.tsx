@@ -188,6 +188,7 @@ export function AppCatalog({
               return (
                 <article
                   key={app.id}
+                  data-tulip-perch="card"
                   onClick={() => onSelectApp(app)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
