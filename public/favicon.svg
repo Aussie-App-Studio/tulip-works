@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" rx="22" fill="#212734"/>
+  <!-- Top orange center petal -->
+  <path d="M40 23 Q50 10 60 23" stroke="#E97824" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Orange swooping inner petal -->
+  <path d="M68 19 Q42 26 42 46 Q42 56 50 60" stroke="#E97824" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Blue left petal & cup -->
+  <path d="M32 19 L32 43 C32 54 40 60 50 60 C60 60 68 54 68 43 L68 19" stroke="#2D5DA8" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 19 Q42 22 49 29" stroke="#2D5DA8" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Stem & leaf -->
+  <path d="M50 60 L50 86" stroke="#2D5DA8" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M50 86 C68 86 80 75 82 58 C65 58 53 68 50 86 Z" stroke="#2D5DA8" stroke-width="5.5" stroke-linejoin="round"/>
+  <path d="M52 84 L72 67" stroke="#E97824" stroke-width="5" stroke-linecap="round"/>
+</svg>

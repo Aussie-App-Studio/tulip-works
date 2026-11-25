@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-tulip-orange: #EA7824;
+  --color-tulip-orange-hover: #D46515;
+  --color-tulip-blue: #2857A4;
+  --color-tulip-blue-light: #3D73CC;
+  --color-tulip-dark: #212734;
+  --color-tulip-darker: #151A24;
+  --color-tulip-cream: #FAF9F6;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: #FAF9F6;
+    color: #18202F;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  .dark body {
+    background-color: #151A24;
+    color: #F3F5FA;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Subtle playful Dutch-inspired geometric dot background */
+.bg-tulip-dots {
+  background-image: radial-gradient(rgba(40, 87, 164, 0.11) 1.25px, transparent 1.25px);
+  background-size: 26px 26px;
+}
+
+.dark .bg-tulip-dots {
+  background-image: radial-gradient(rgba(234, 120, 36, 0.12) 1.25px, transparent 1.25px);
+  background-size: 26px 26px;
+}
+
+/* Tactile card lift & shadow */
+.tulip-card {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease;
+}
+
+.tulip-card:hover {
+  transform: translateY(-4px);
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 5.5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatSlow 6.5s ease-in-out 1.4s infinite;
+}
