@@ -338,9 +338,9 @@ export const TULIP_APPS: TulipApp[] = [
     name: 'ProText for Google Messages',
     tagline: 'Gorgeous themes, chat folders, Undo Send & power tools for Google Messages.',
     description:
-      'Gives Google Messages on your computer the glow-up it deserves! Pick from 12+ handcrafted themes (AMOLED Black, Dracula, Warm Paper, Pink Sakura, or build your own), organize chats into folders, and rescue typos with Undo Send.',
+      'Gives Google Messages on your computer the glow-up it deserves! Pick from 12+ gorgeous themes (AMOLED Black, Dracula, Warm Paper, Pink Sakura, or build your own), organize chats into folders, and rescue typos with Undo Send.',
     highlights: [
-      '12+ handcrafted themes plus a live Custom Theme Builder',
+      '12+ built-in themes plus a live Custom Theme Builder',
       'Smart chat folders to separate family, work & church messages',
       'Undo Send safety net & handy keyboard shortcuts',
       '100% local in your browser — zero servers, zero message reading',

@@ -39,7 +39,7 @@ export function Hero({
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#212734] border border-slate-200 dark:border-slate-700/80 shadow-xs text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
               <span className="inline-block w-2 h-2 rounded-full bg-[#EA7824] animate-pulse" />
-              <span>Handmade in Australia · Zero ads, zero tracking</span>
+              <span>Indie apps from Australia · Zero ads, zero tracking</span>
             </div>
 
             <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-slate-900 dark:text-white leading-[1.06]">
