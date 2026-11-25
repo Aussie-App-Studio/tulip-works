@@ -447,6 +447,38 @@ export const TULIP_APPS: TulipApp[] = [
     },
   },
   {
+    id: 'auto-context-wallpaper',
+    name: 'Auto Context Smart Wallpaper',
+    tagline: 'Your Android wallpaper adapts automatically to your day, weather & music.',
+    description:
+      'An intelligent Android live wallpaper that changes your background automatically based on rules you choose — time of day, weekdays, live weather, or even what you’re listening to on Spotify — all privately on your phone.',
+    highlights: [
+      'Switches wallpapers automatically by time, weekday, weather, or music',
+      'Smart visual layers and custom rules built around your daily routine',
+      'Clean, battery-friendly Android live wallpaper',
+      'Available right now on Google Play',
+    ],
+    icon: './app-icons/auto-context.png',
+    accentGradient: 'from-orange-500 to-amber-600',
+    fallbackEmoji: '🎨',
+    platforms: ['android'],
+    categories: ['android', 'everyday'],
+    featured: true,
+    badge: 'Google Play',
+    storeLinks: [
+      {
+        label: 'Google Play',
+        store: 'play-store',
+        url: 'https://play.google.com/store/apps/details?id=com.autocontext.app&hl=en_AU',
+      },
+    ],
+    downloads: [],
+    pricing: {
+      type: 'free',
+      note: 'Available on Google Play',
+    },
+  },
+  {
     id: 'fade-sleep-timer',
     name: 'Fade Sleep Timer',
     tagline: 'Fall asleep to podcasts or music with a gentle audio fade-out & Do Not Disturb.',
@@ -564,20 +596,6 @@ export const TULIP_APPS: TulipApp[] = [
  * ============================================================================
  */
 export const IN_PRODUCTION_APPS: InProductionApp[] = [
-  {
-    id: 'auto-context-wallpaper',
-    name: 'Auto Context Smart Wallpaper',
-    tagline: 'Your phone wallpaper adapts automatically to your day.',
-    description:
-      'Automatically switches your Android wallpaper based on smart rules you pick — morning, night, work, home, gym, or Sunday mornings — all privately on your phone.',
-    stage: 'Beta Testing',
-    progress: 82,
-    platforms: ['android'],
-    accentColor: '#EA7824',
-    icon: './app-icons/auto-context.png',
-    emoji: '🎨',
-    eta: 'Polishing beta',
-  },
   {
     id: 'stow-cards',
     name: 'Stow Cards: Offline Wallet',
