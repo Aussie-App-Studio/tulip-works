@@ -15,7 +15,7 @@ const CATEGORY_TABS: { id: RecommendationCategory; label: string; emoji: string 
   { id: 'church-reformed', label: 'Bible & Church', emoji: '⛪' },
   { id: 'pc-desktop', label: 'PC & Desktop', emoji: '💻' },
   { id: 'extensions', label: 'Browser Extensions', emoji: '🧩' },
-  { id: 'mobile-web', label: 'Mobile & Web', emoji: '📱' },
+  { id: 'mobile-web', label: 'Web', emoji: '🌐' },
   { id: 'all', label: 'All Picks', emoji: '🌟' },
 ];
 
