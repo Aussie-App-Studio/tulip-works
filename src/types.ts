@@ -102,3 +102,32 @@ export interface GitHubReleaseInfo {
   htmlUrl: string;
   assets: GitHubReleaseAsset[];
 }
+
+export type RecommendationCategory =
+  | 'all'
+  | 'extensions'
+  | 'apps-web'
+  | 'privacy'
+  | 'church-reformed';
+
+export interface RecommendationLink {
+  label: string;
+  url: string;
+  variant?: 'primary' | 'secondary' | 'github';
+}
+
+export interface RecommendedItem {
+  id: string;
+  name: string;
+  versionBadge?: string;
+  creator: string;
+  kindLabel: string;
+  tagline: string;
+  description: string;
+  note?: string;
+  emoji: string;
+  accentGradient: string;
+  platforms: string[];
+  categories: Exclude<RecommendationCategory, 'all'>[];
+  links: RecommendationLink[];
+}

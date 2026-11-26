@@ -24,7 +24,6 @@ interface Obstacle {
   y: number;
   w: number;
   h: number;
-  passed: boolean;
   phase: number;
 }
 
@@ -74,13 +73,14 @@ interface Cloud {
   speed: number;
 }
 
-const LOGICAL_W = 860;
 const LOGICAL_H = 260;
 const GROUND_Y = 214;
 const PLAYER_X = 96;
 const PLAYER_W = 38;
 const PLAYER_H = 54;
 const PLAYER_DUCK_H = 34;
+const BASE_SPEED = 360;
+const MAX_SPEED = 540;
 const HI_SCORE_KEY = 'tulip-works-runner-hi-v1';
 
 const QUIPS: Record<ObstacleKind, string[]> = {
@@ -117,7 +117,8 @@ function getRank(score: number): string {
 function playSynth(
   ctxRef: React.MutableRefObject<AudioContext | null>,
   muted: boolean,
-  type: 'jump' | 'bonus' | 'milestone' | 'bonk'
+  type: 'jump' | 'bonus' | 'milestone' | 'bonk',
+  streak = 1
 ) {
   if (muted || typeof window === 'undefined') return;
   try {
@@ -144,9 +145,10 @@ function playSynth(
       osc.start(now);
       osc.stop(now + 0.12);
     } else if (type === 'bonus') {
+      const mult = Math.pow(2, Math.min(Math.max(0, streak - 1), 5) / 12);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(660, now);
-      osc.frequency.setValueAtTime(880, now + 0.06);
+      osc.frequency.setValueAtTime(660 * mult, now);
+      osc.frequency.setValueAtTime(880 * mult, now + 0.06);
       gain.gain.setValueAtTime(0.11, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
       osc.start(now);
@@ -209,7 +211,7 @@ function drawTulipHero(
   isDark: boolean
 ) {
   ctx.save();
-  const cx = x + PLAYER_W / 2;
+  const cx = Math.round(x + PLAYER_W / 2);
   const bob = jumping || dead ? 0 : Math.abs(Math.sin(stridePhase)) * -3.5;
 
   // Ground shadow
@@ -219,7 +221,7 @@ function drawTulipHero(
   ctx.ellipse(cx, GROUND_Y + 3, 16 * airRatio, 4 * airRatio, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.translate(cx, bottomY + bob);
+  ctx.translate(cx, Math.round(bottomY + bob));
   if (ducking && !jumping) {
     ctx.scale(1.18, 0.68);
   } else if (jumping) {
@@ -357,6 +359,22 @@ function drawTulipHero(
   ctx.restore();
 }
 
+function createObstacle(kind: ObstacleKind, x: number): Obstacle {
+  const phase = Math.random() * 6;
+  if (kind === 'ad') {
+    return { kind, x, y: GROUND_Y - 38, w: 40, h: 38, phase };
+  }
+  if (kind === 'cookie') {
+    return { kind, x, y: GROUND_Y - 48, w: 48, h: 48, phase };
+  }
+  if (kind === 'bug') {
+    return { kind, x, y: GROUND_Y - 26, w: 34, h: 26, phase };
+  }
+  // Flying tracker at head height (always duckable or jumpable!)
+  const yPos = GROUND_Y - 62 + Math.round(Math.random() * 4);
+  return { kind, x, y: yPos, w: 44, h: 26, phase };
+}
+
 function drawObstacle(
   ctx: CanvasRenderingContext2D,
   ob: Obstacle,
@@ -364,112 +382,122 @@ function drawObstacle(
   isDark: boolean
 ) {
   ctx.save();
+  const ox = Math.round(ob.x);
+  const oy = Math.round(ob.y);
+
   if (ob.kind === 'ad') {
-    // Pop-up Ad window
-    drawRoundedRect(ctx, ob.x, ob.y, ob.w, ob.h, 6);
+    // Pop-up Ad window: bold red outline, solid top bar, crisp static AD text
+    drawRoundedRect(ctx, ox, oy, ob.w, ob.h, 6);
     ctx.fillStyle = isDark ? '#3B2318' : '#FFF3CD';
     ctx.fill();
     ctx.strokeStyle = '#EF4444';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Red top bar
-    drawRoundedRect(ctx, ob.x, ob.y, ob.w, 12, 5);
+    // Solid red top bar + crisp white dot
+    drawRoundedRect(ctx, ox, oy, ob.w, 12, 5);
     ctx.fillStyle = '#EF4444';
     ctx.fill();
-
-    // Tiny fake close X
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 9px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText('✕', ob.x + ob.w - 4, ob.y + 9);
+    ctx.beginPath();
+    ctx.arc(ox + ob.w - 7, oy + 6, 2.2, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Blinking "AD!" text
-    const blink = Math.floor(t / 240) % 2 === 0;
-    ctx.fillStyle = blink ? '#DC2626' : isDark ? '#FDE047' : '#B45309';
-    ctx.font = '900 13px "Bricolage Grotesque", sans-serif';
+    // High-contrast static "AD"
+    ctx.fillStyle = isDark ? '#FDE047' : '#DC2626';
+    ctx.font = '900 16px "Bricolage Grotesque", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('AD!', ob.x + ob.w / 2, ob.y + ob.h - 10);
+    ctx.fillText('AD', ox + ob.w / 2, oy + ob.h - 8);
   } else if (ob.kind === 'cookie') {
-    // Tall annoying cookie consent banner
-    drawRoundedRect(ctx, ob.x, ob.y, ob.w, ob.h, 7);
+    // Bold cookie consent banner silhouette
+    drawRoundedRect(ctx, ox, oy, ob.w, ob.h, 7);
     ctx.fillStyle = isDark ? '#272E3F' : '#FFFFFF';
     ctx.fill();
     ctx.strokeStyle = isDark ? '#F59E0B' : '#D97706';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Cookie circle icon
+    // Large clear cookie silhouette + 3 bold chips
+    const ccx = ox + ob.w / 2;
+    const ccy = oy + 17;
     ctx.fillStyle = '#D97706';
     ctx.beginPath();
-    ctx.arc(ob.x + ob.w / 2, ob.y + 15, 8, 0, Math.PI * 2);
+    ctx.arc(ccx, ccy, 12, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#451A03';
     ctx.beginPath();
-    ctx.arc(ob.x + ob.w / 2 - 3, ob.y + 13, 1.4, 0, Math.PI * 2);
-    ctx.arc(ob.x + ob.w / 2 + 2.5, ob.y + 16, 1.4, 0, Math.PI * 2);
-    ctx.arc(ob.x + ob.w / 2 - 1, ob.y + 18.5, 1.2, 0, Math.PI * 2);
+    ctx.arc(ccx - 4.5, ccy - 3, 2.2, 0, Math.PI * 2);
+    ctx.arc(ccx + 4, ccy - 1, 2.2, 0, Math.PI * 2);
+    ctx.arc(ccx - 1, ccy + 4.5, 2.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // "ACCEPT" fake button
-    drawRoundedRect(ctx, ob.x + 5, ob.y + ob.h - 18, ob.w - 10, 12, 3);
+    // Solid blue pill bar at bottom (no micro text)
+    drawRoundedRect(ctx, ox + 6, oy + ob.h - 14, ob.w - 12, 8, 4);
     ctx.fillStyle = '#2857A4';
     ctx.fill();
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 7.5px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('ACCEPT', ob.x + ob.w / 2, ob.y + ob.h - 9.5);
   } else if (ob.kind === 'bug') {
-    // Scuttling glitch bug
-    const cx = ob.x + ob.w / 2;
-    const cy = ob.y + ob.h / 2 + 3;
+    // Scuttling glitch bug: bold crimson body, high-contrast outline, 2 pairs of thick legs
+    const cx = ox + ob.w / 2;
+    const cy = oy + ob.h / 2 + 2;
     const wiggle = Math.sin(t * 0.025 + ob.phase) * 3;
 
-    // Legs
     ctx.strokeStyle = '#E11D48';
-    ctx.lineWidth = 2.2;
-    for (let i = -1; i <= 1; i++) {
+    ctx.lineWidth = 2.8;
+    ctx.lineCap = 'round';
+    for (const dir of [-1, 1]) {
       ctx.beginPath();
-      ctx.moveTo(cx - 10, cy + i * 4);
-      ctx.lineTo(cx - 17, cy + i * 5 + wiggle * (i === 0 ? -1 : 1));
-      ctx.moveTo(cx + 10, cy + i * 4);
-      ctx.lineTo(cx + 17, cy + i * 5 - wiggle * (i === 0 ? -1 : 1));
+      ctx.moveTo(cx - 10, cy + dir * 4);
+      ctx.lineTo(cx - 17, cy + dir * 6 + wiggle * dir);
+      ctx.moveTo(cx + 10, cy + dir * 4);
+      ctx.lineTo(cx + 17, cy + dir * 6 - wiggle * dir);
       ctx.stroke();
     }
 
-    // Body
+    // Body with crisp outline
     ctx.fillStyle = '#E11D48';
+    ctx.strokeStyle = isDark ? '#FDA4AF' : '#881337';
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.ellipse(cx, cy, 13, 10, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    // Shell stripe & spots
-    ctx.strokeStyle = '#FFF1F2';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(cx - 11, cy);
-    ctx.lineTo(cx + 11, cy);
     ctx.stroke();
 
-    // Angry eyes facing left
+    // Bold eye facing left
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
-    ctx.arc(cx - 8, cy - 3, 2.5, 0, Math.PI * 2);
+    ctx.arc(cx - 7, cy - 3, 3, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#18181B';
     ctx.beginPath();
-    ctx.arc(cx - 9, cy - 3, 1.2, 0, Math.PI * 2);
+    ctx.arc(cx - 8, cy - 3, 1.5, 0, Math.PI * 2);
     ctx.fill();
   } else {
     // Flying Tracker Eye drone (mid-air — duck under or jump over!)
     const bob = Math.sin(t * 0.012 + ob.phase) * 4;
-    const cx = ob.x + ob.w / 2;
-    const cy = ob.y + ob.h / 2 + bob;
+    const cx = ox + ob.w / 2;
+    const cy = Math.round(oy + ob.h / 2 + bob);
 
-    // Tiny drone wings
+    // Ground shadow for clear horizontal timing
+    ctx.fillStyle = isDark ? 'rgba(0,0,0,0.28)' : 'rgba(24,32,47,0.10)';
+    ctx.beginPath();
+    ctx.ellipse(cx, GROUND_Y + 3, 15, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle horizontal wake to telegraph its height lane
+    ctx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx + 22, cy);
+    ctx.lineTo(cx + 42, cy);
+    ctx.moveTo(cx + 26, cy - 5);
+    ctx.lineTo(cx + 38, cy - 5);
+    ctx.stroke();
+
+    // Thick swept drone wings
     const flap = Math.sin(t * 0.035 + ob.phase) * 7;
     ctx.strokeStyle = '#A855F7';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(cx - 8, cy - 8);
     ctx.lineTo(cx - 19, cy - 13 + flap);
@@ -477,10 +505,10 @@ function drawObstacle(
     ctx.lineTo(cx + 19, cy - 13 + flap);
     ctx.stroke();
 
-    // Eye outer shape
+    // Bold eye outer shape
     ctx.fillStyle = isDark ? '#3B1F5E' : '#F3E8FF';
     ctx.strokeStyle = '#9333EA';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(cx - 20, cy);
     ctx.quadraticCurveTo(cx, cy - 14, cx + 20, cy);
@@ -489,22 +517,22 @@ function drawObstacle(
     ctx.fill();
     ctx.stroke();
 
-    // Pupil looking left toward player
+    // Large iris + crisp glint
     ctx.fillStyle = '#9333EA';
     ctx.beginPath();
-    ctx.arc(cx - 3, cy, 5.5, 0, Math.PI * 2);
+    ctx.arc(cx - 3, cy, 6.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
-    ctx.arc(cx - 5, cy - 1.5, 1.8, 0, Math.PI * 2);
+    ctx.arc(cx - 5, cy - 2, 2.2, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 }
 
 /**
- * Draws crisp cartoon Reformation collectibles (Calvin, Luther, Spurgeon, Knox,
- * 95 Theses scroll, and Open Scripture) inside a soft golden glow halo.
+ * Draws chunky 2-3-shape Reformation collectibles (Calvin, Luther, Spurgeon, Knox,
+ * 95 Theses scroll, and Open Scripture) inside a golden medallion halo.
  */
 function drawReformationBonus(
   ctx: CanvasRenderingContext2D,
@@ -513,246 +541,155 @@ function drawReformationBonus(
   isDark: boolean
 ) {
   const bob = Math.sin(t * 0.008 + b.phase) * 3;
-  const cx = b.x;
-  const cy = b.y + bob;
+  const cx = Math.round(b.x);
+  const cy = Math.round(b.y + bob);
 
   ctx.save();
+
+  // Subtle ground shadow directly beneath the collectible
+  ctx.fillStyle = isDark ? 'rgba(251,191,36,0.14)' : 'rgba(180,83,9,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(cx, GROUND_Y + 3, 11, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.translate(cx, cy);
 
   // Soft golden aura so players immediately recognize it as a collectible
-  ctx.fillStyle = isDark ? 'rgba(251, 191, 36, 0.18)' : 'rgba(251, 191, 36, 0.28)';
+  ctx.fillStyle = isDark ? 'rgba(251, 191, 36, 0.22)' : 'rgba(251, 191, 36, 0.3)';
   ctx.beginPath();
-  ctx.arc(0, 0, b.r + 5, 0, Math.PI * 2);
+  ctx.arc(0, 0, b.r + 6, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = isDark ? '#242B35' : '#FFFDF7';
   ctx.strokeStyle = '#F59E0B';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.arc(0, 0, b.r, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
   if (b.kind === 'calvin') {
-    // John Calvin: iconic black Geneva Tudor cap + long pointed beard!
-    // Face
+    // John Calvin: warm face + black Geneva Tudor cap + chunky pointed beard
     ctx.fillStyle = '#FDE2C4';
     ctx.beginPath();
-    ctx.ellipse(0, 0, 8.5, 9.5, 0, 0, Math.PI * 2);
+    ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Long pointed Geneva beard (gray-brown)
     ctx.fillStyle = '#6B5B4F';
     ctx.beginPath();
-    ctx.moveTo(-8, 1);
-    ctx.quadraticCurveTo(-8, 10, 0, 15);
-    ctx.quadraticCurveTo(8, 10, 8, 1);
-    ctx.quadraticCurveTo(0, 4, -8, 1);
+    ctx.moveTo(-9, 1);
+    ctx.quadraticCurveTo(-8, 12, 0, 16);
+    ctx.quadraticCurveTo(8, 12, 9, 1);
     ctx.closePath();
     ctx.fill();
 
-    // Mustache
-    ctx.fillStyle = '#57483D';
-    ctx.beginPath();
-    ctx.ellipse(0, 4, 5, 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Black Tudor cap with side ear flaps
     ctx.fillStyle = '#18181B';
     ctx.beginPath();
-    ctx.ellipse(0, -8.5, 11.5, 4.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -9, 12.5, 4.8, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillRect(-9.5, -8.5, 3, 9);
-    ctx.fillRect(6.5, -8.5, 3, 9);
-
-    // Eyes & serious scholar brows
-    ctx.fillStyle = '#18181B';
-    ctx.beginPath();
-    ctx.arc(-3, -1.5, 1.3, 0, Math.PI * 2);
-    ctx.arc(3, -1.5, 1.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#3F3F46';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-5, -4);
-    ctx.lineTo(-1, -3.3);
-    ctx.moveTo(1, -3.3);
-    ctx.lineTo(5, -4);
-    ctx.stroke();
+    ctx.fillRect(-10.5, -9, 3.5, 10);
+    ctx.fillRect(7, -9, 3.5, 10);
   } else if (b.kind === 'luther') {
-    // Martin Luther: round cheerful cheeks + classic black German reformer beret!
-    // Collar peek
+    // Martin Luther: dark robe collar + round warm face + chunky tilted black beret
     ctx.fillStyle = '#18181B';
     ctx.beginPath();
-    ctx.arc(0, 11, 8, Math.PI, 0);
+    ctx.arc(0, 12, 9, Math.PI, 0);
     ctx.fill();
 
-    // Round face
     ctx.fillStyle = '#FCD9B6';
     ctx.beginPath();
-    ctx.ellipse(0, 1, 9.5, 9, 0, 0, Math.PI * 2);
+    ctx.arc(0, 1, 9.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Rosy German cheeks
-    ctx.fillStyle = 'rgba(244, 63, 94, 0.32)';
-    ctx.beginPath();
-    ctx.arc(-5.5, 3, 2.3, 0, Math.PI * 2);
-    ctx.arc(5.5, 3, 2.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Side brown hair tufts
-    ctx.fillStyle = '#5C3A21';
-    ctx.beginPath();
-    ctx.arc(-8.5, -1, 2.8, 0, Math.PI * 2);
-    ctx.arc(8.5, -1, 2.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Tilted puffy black scholar beret
     ctx.fillStyle = '#1E293B';
     ctx.beginPath();
-    ctx.ellipse(-1, -8, 12, 5.2, -0.15, 0, Math.PI * 2);
+    ctx.ellipse(-1, -8.5, 13, 5.5, -0.15, 0, Math.PI * 2);
     ctx.fill();
-
-    // Bold eyes & determined grin
-    ctx.fillStyle = '#18181B';
-    ctx.beginPath();
-    ctx.arc(-3.2, -0.5, 1.4, 0, Math.PI * 2);
-    ctx.arc(3.2, -0.5, 1.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#7C2D12';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.arc(0, 3.2, 3.2, 0.15 * Math.PI, 0.85 * Math.PI);
-    ctx.stroke();
   } else if (b.kind === 'spurgeon') {
-    // Charles Spurgeon: glorious bushy Victorian beard + cozy warmth!
-    // Face
+    // Charles Spurgeon: warm face + dark hair dome + wide bushy full beard
     ctx.fillStyle = '#FDE0C2';
     ctx.beginPath();
-    ctx.ellipse(0, -1, 9, 8.5, 0, 0, Math.PI * 2);
+    ctx.arc(0, -1, 9.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Parted Victorian hair
     ctx.fillStyle = '#3B281E';
     ctx.beginPath();
-    ctx.arc(0, -5, 9.5, Math.PI, 0);
+    ctx.arc(0, -5.5, 10, Math.PI, 0);
     ctx.fill();
 
-    // Magnificent wide Victorian full beard
     ctx.fillStyle = '#3B281E';
     ctx.beginPath();
-    ctx.moveTo(-10, -1);
-    ctx.quadraticCurveTo(-12, 11, 0, 14.5);
-    ctx.quadraticCurveTo(12, 11, 10, -1);
-    ctx.quadraticCurveTo(0, 4.5, -10, -1);
+    ctx.moveTo(-11, -1);
+    ctx.quadraticCurveTo(-13, 12, 0, 15.5);
+    ctx.quadraticCurveTo(13, 12, 11, -1);
+    ctx.quadraticCurveTo(0, 4, -11, -1);
     ctx.closePath();
     ctx.fill();
-
-    // Friendly twinkling eyes + little smile peeking through beard
-    ctx.fillStyle = '#18181B';
-    ctx.beginPath();
-    ctx.arc(-3.2, -2, 1.3, 0, Math.PI * 2);
-    ctx.arc(3.2, -2, 1.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#FDE0C2';
-    ctx.lineWidth = 1.3;
-    ctx.beginPath();
-    ctx.arc(0, 3, 2.5, 0.1 * Math.PI, 0.9 * Math.PI);
-    ctx.stroke();
   } else if (b.kind === 'knox') {
-    // John Knox: flat Scottish bonnet + legendary long flowing white beard!
+    // John Knox: warm face + wide flat Scottish bonnet + long silver-white beard
     ctx.fillStyle = '#FDE2C4';
     ctx.beginPath();
-    ctx.ellipse(0, -1, 8.5, 8.5, 0, 0, Math.PI * 2);
+    ctx.arc(0, -1, 9, 0, Math.PI * 2);
     ctx.fill();
 
-    // Epic flowing silver-white beard
     ctx.fillStyle = '#E2E8F0';
-    ctx.strokeStyle = '#94A3B8';
-    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(-8.5, 0);
-    ctx.quadraticCurveTo(-9.5, 11, 0, 16);
-    ctx.quadraticCurveTo(9.5, 11, 8.5, 0);
-    ctx.quadraticCurveTo(0, 4, -8.5, 0);
+    ctx.moveTo(-9, 0);
+    ctx.quadraticCurveTo(-10, 12, 0, 16.5);
+    ctx.quadraticCurveTo(10, 12, 9, 0);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Scottish bonnet
     ctx.fillStyle = '#1E293B';
     ctx.beginPath();
-    ctx.ellipse(0, -8.5, 12.5, 4.2, 0.08, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Fierce bright eyes
-    ctx.fillStyle = '#18181B';
-    ctx.beginPath();
-    ctx.arc(-3, -2, 1.3, 0, Math.PI * 2);
-    ctx.arc(3, -2, 1.3, 0, Math.PI * 2);
+    ctx.ellipse(0, -9, 13.5, 4.5, 0.08, 0, Math.PI * 2);
     ctx.fill();
   } else if (b.kind === 'theses') {
-    // The 95 Theses parchment scroll pinned with a tiny nail!
-    drawRoundedRect(ctx, -9, -11, 18, 22, 3);
+    // The 95 Theses: bold cream parchment + pin dot + big bold "95"
+    drawRoundedRect(ctx, -10, -12, 20, 24, 3);
     ctx.fillStyle = '#FEF3C7';
     ctx.fill();
     ctx.strokeStyle = '#B45309';
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
-    // Tiny top nail
-    ctx.fillStyle = '#64748B';
+    ctx.fillStyle = '#DC2626';
     ctx.beginPath();
-    ctx.arc(0, -8, 2, 0, Math.PI * 2);
+    ctx.arc(0, -8.5, 2.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Bold "95"
     ctx.fillStyle = '#9A3412';
-    ctx.font = '900 11px "Bricolage Grotesque", serif';
+    ctx.font = '900 13px "Bricolage Grotesque", serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('95', 0, 1);
-
-    // Tiny text lines underneath
-    ctx.strokeStyle = '#D97706';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-5, 7);
-    ctx.lineTo(5, 7);
-    ctx.stroke();
+    ctx.fillText('95', 0, 2);
   } else {
-    // Sola Scriptura: Open golden Bible with red ribbon bookmark!
-    // Leather cover
-    drawRoundedRect(ctx, -12, -7, 24, 15, 2.5);
+    // Sola Scriptura: bold dark-brown book cover + crisp cream pages + thick red ribbon
+    drawRoundedRect(ctx, -13, -8, 26, 16, 3);
     ctx.fillStyle = '#78350F';
     ctx.fill();
 
-    // Open cream pages
     ctx.fillStyle = '#FFFBEB';
     ctx.beginPath();
     ctx.moveTo(0, 6);
-    ctx.quadraticCurveTo(-5, 4, -10, 5);
-    ctx.lineTo(-10, -6);
-    ctx.quadraticCurveTo(-5, -7, 0, -5);
-    ctx.quadraticCurveTo(5, -7, 10, -6);
-    ctx.lineTo(10, 5);
-    ctx.quadraticCurveTo(5, 4, 0, 6);
+    ctx.quadraticCurveTo(-5.5, 4, -10.5, 5);
+    ctx.lineTo(-10.5, -6.5);
+    ctx.quadraticCurveTo(-5.5, -7.5, 0, -5);
+    ctx.quadraticCurveTo(5.5, -7.5, 10.5, -6.5);
+    ctx.lineTo(10.5, 5);
+    ctx.quadraticCurveTo(5.5, 4, 0, 6);
     ctx.closePath();
     ctx.fill();
 
-    // Spine crease & red ribbon
-    ctx.strokeStyle = '#D97706';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, -5);
-    ctx.lineTo(0, 6);
-    ctx.stroke();
-
     ctx.strokeStyle = '#DC2626';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.8;
+    ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(0, 5);
-    ctx.lineTo(2, 11);
+    ctx.lineTo(2.5, 12.5);
     ctx.stroke();
   }
 
@@ -764,6 +701,9 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const themeRef = useRef<ThemeMode>(theme);
   const mutedRef = useRef<boolean>(false);
+  const canvasSizeRef = useRef({ cssW: 860, cssH: 260 });
+  const pointerStartYRef = useRef<number | null>(null);
+  const swipedDownRef = useRef(false);
 
   const [status, setStatus] = useState<GameStatus>('idle');
   const [score, setScore] = useState(0);
@@ -786,6 +726,34 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
     mutedRef.current = muted;
   }, [muted]);
 
+  useEffect(() => {
+    return () => {
+      audioCtxRef.current?.close().catch(() => {});
+    };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const updateSize = (w: number, h: number) => {
+      canvasSizeRef.current = {
+        cssW: Math.max(320, Math.round(w)),
+        cssH: Math.max(180, Math.round(h)),
+      };
+    };
+    const rect = canvas.getBoundingClientRect();
+    updateSize(rect.width, rect.height);
+
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        updateSize(entry.contentRect.width, entry.contentRect.height);
+      }
+    });
+    ro.observe(canvas);
+    return () => ro.disconnect();
+  }, []);
+
   // Mutable simulation state stored in ref for silky 60fps loop
   const gameRef = useRef({
     status: 'idle' as GameStatus,
@@ -796,9 +764,10 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
     jumpBuffer: 0,
     coyoteTimer: 0,
     stridePhase: 0,
-    speed: 370,
+    speed: BASE_SPEED,
     distance: 0,
     bonusPoints: 0,
+    bonusStreak: 0,
     lastMilestone: 0,
     spawnTimer: 1.1,
     bonusTimer: 3.5,
@@ -811,9 +780,11 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
       { x: 140, y: 42, w: 68, speed: 18 },
       { x: 430, y: 66, w: 52, speed: 14 },
       { x: 710, y: 36, w: 80, speed: 22 },
+      { x: 1020, y: 50, w: 64, speed: 16 },
     ] as Cloud[],
     highScore: 0,
     shakeTime: 0,
+    gameOverLock: 0,
   });
 
   useEffect(() => {
@@ -846,9 +817,10 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
     g.jumpBuffer = 0;
     g.coyoteTimer = 0;
     g.stridePhase = 0;
-    g.speed = 385;
+    g.speed = BASE_SPEED;
     g.distance = 0;
     g.bonusPoints = 0;
+    g.bonusStreak = 0;
     g.lastMilestone = 0;
     g.spawnTimer = 1.0;
     g.bonusTimer = 2.8;
@@ -857,6 +829,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
     g.particles = [];
     g.floatingTexts = [];
     g.shakeTime = 0;
+    g.gameOverLock = 0;
     spawnDust(PLAYER_X + PLAYER_W / 2, GROUND_Y, 8, ['#EA7824', '#2857A4', '#FBBF24']);
     playSynth(audioCtxRef, mutedRef.current, 'jump');
     setScore(0);
@@ -866,7 +839,12 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
 
   const triggerJumpPress = useCallback(() => {
     const g = gameRef.current;
-    if (g.status === 'idle' || g.status === 'gameover') {
+    if (g.status === 'idle') {
+      resetAndStart();
+      return;
+    }
+    if (g.status === 'gameover') {
+      if (g.gameOverLock > 0) return;
       resetAndStart();
       return;
     }
@@ -954,9 +932,12 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
         return;
       }
 
+      const { cssW, cssH } = canvasSizeRef.current;
+      const logicalW = (cssW / cssH) * LOGICAL_H;
+
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const targetW = LOGICAL_W * dpr;
-      const targetH = LOGICAL_H * dpr;
+      const targetW = Math.round(cssW * dpr);
+      const targetH = Math.round(cssH * dpr);
       if (canvas.width !== targetW || canvas.height !== targetH) {
         canvas.width = targetW;
         canvas.height = targetH;
@@ -973,12 +954,13 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
 
       // --- UPDATE ---
       if (g.shakeTime > 0) g.shakeTime = Math.max(0, g.shakeTime - dt);
+      if (g.gameOverLock > 0) g.gameOverLock = Math.max(0, g.gameOverLock - dt);
 
       // Gentle ambient clouds even when idle
       for (const c of g.clouds) {
         c.x -= (g.status === 'playing' ? c.speed + g.speed * 0.08 : c.speed * 0.5) * dt;
         if (c.x + c.w < -20) {
-          c.x = LOGICAL_W + 30 + Math.random() * 120;
+          c.x = logicalW + 30 + Math.random() * 120;
           c.y = 28 + Math.random() * 62;
         }
       }
@@ -986,9 +968,9 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
       if (g.status === 'idle') {
         g.stridePhase += dt * 7;
       } else if (g.status === 'playing') {
-        // Ramp speed smoothly
-        g.speed = Math.min(760, g.speed + dt * 11);
-        g.distance += g.speed * dt * 0.042;
+        // Asymptotic speed curve capped at MAX_SPEED (540) to prevent motion blur
+        g.speed += (MAX_SPEED - g.speed) * Math.min(1, dt * 0.045);
+        g.distance += g.speed * dt * 0.048;
         g.groundOffset = (g.groundOffset + g.speed * dt) % 48;
         g.stridePhase += dt * (g.speed * 0.036);
 
@@ -1043,49 +1025,82 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
           g.vy = 0;
         }
 
-        // Spawn obstacles
+        // Spawn obstacles (patterns scale difficulty without excessive speed)
+        const playerCenterX = PLAYER_X + PLAYER_W / 2;
+        const guardBonusConflict = (kind: ObstacleKind, spawnX: number): ObstacleKind => {
+          const tOb = (spawnX + 20 - playerCenterX) / g.speed;
+          let resolved = kind;
+          for (const b of g.bonuses) {
+            if (b.collected) continue;
+            const tBonus = (b.x - playerCenterX) / (g.speed * 0.75);
+            if (Math.abs(tOb - tBonus) < 0.42) {
+              if (resolved === 'tracker') resolved = 'bug';
+              b.y = Math.min(b.y, GROUND_Y - 116);
+            }
+          }
+          return resolved;
+        };
+
         g.spawnTimer -= dt;
         if (g.spawnTimer <= 0) {
-          const canFly = totalScore >= 90;
-          const roll = Math.random();
-          let kind: ObstacleKind = 'ad';
-          if (canFly && roll < 0.24) kind = 'tracker';
-          else if (roll < 0.5) kind = 'ad';
-          else if (roll < 0.76) kind = 'cookie';
-          else kind = 'bug';
+          const speedRatio = Math.max(0, Math.min(1, (g.speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED)));
+          const minGap = Math.max(0.72, 1.32 - speedRatio * 0.52);
+          const comboChance = totalScore >= 140 ? Math.min(0.42, (totalScore - 140) / 700) : 0;
 
-          let ob: Obstacle;
-          if (kind === 'ad') {
-            ob = { kind, x: LOGICAL_W + 24, y: GROUND_Y - 38, w: 40, h: 38, passed: false, phase: Math.random() * 6 };
-          } else if (kind === 'cookie') {
-            ob = { kind, x: LOGICAL_W + 24, y: GROUND_Y - 48, w: 48, h: 48, passed: false, phase: Math.random() * 6 };
-          } else if (kind === 'bug') {
-            ob = { kind, x: LOGICAL_W + 24, y: GROUND_Y - 26, w: 34, h: 26, passed: false, phase: Math.random() * 6 };
+          if (Math.random() < comboChance) {
+            if (Math.random() < 0.5) {
+              // Jump -> Duck combo
+              const firstKind = guardBonusConflict(Math.random() < 0.5 ? 'bug' : 'ad', logicalW + 24);
+              const secondX = logicalW + 24 + g.speed * 0.78;
+              const secondKind = guardBonusConflict('tracker', secondX);
+              g.obstacles.push(createObstacle(firstKind, logicalW + 24));
+              g.obstacles.push(createObstacle(secondKind, secondX));
+            } else {
+              // Double Hop combo
+              const firstKind = guardBonusConflict('bug', logicalW + 24);
+              const secondX = logicalW + 24 + g.speed * 0.72;
+              const secondKind = guardBonusConflict(Math.random() < 0.5 ? 'bug' : 'ad', secondX);
+              g.obstacles.push(createObstacle(firstKind, logicalW + 24));
+              g.obstacles.push(createObstacle(secondKind, secondX));
+            }
+            g.spawnTimer = minGap + 0.78 + Math.random() * (0.55 - speedRatio * 0.18);
           } else {
-            // Flying tracker at head height (duck under OR jump over!)
-            const highVariant = Math.random() < 0.65;
-            const yPos = highVariant ? GROUND_Y - 64 : GROUND_Y - 40;
-            ob = { kind, x: LOGICAL_W + 24, y: yPos, w: 44, h: 26, passed: false, phase: Math.random() * 6 };
-          }
-          g.obstacles.push(ob);
+            const canFly = totalScore >= 90;
+            const roll = Math.random();
+            let kind: ObstacleKind = 'ad';
+            if (canFly && roll < 0.24) kind = 'tracker';
+            else if (roll < 0.5) kind = 'ad';
+            else if (roll < 0.76) kind = 'cookie';
+            else kind = 'bug';
 
-          const minGap = Math.max(0.68, 1.38 - (g.speed - 385) * 0.0014);
-          g.spawnTimer = minGap + Math.random() * 0.65;
+            const resolvedKind = guardBonusConflict(kind, logicalW + 24);
+            g.obstacles.push(createObstacle(resolvedKind, logicalW + 24));
+            g.spawnTimer = minGap + Math.random() * (0.6 - speedRatio * 0.2);
+          }
         }
 
-        // Spawn Reformation cartoon bonus collectibles (Calvin, Luther, Spurgeon, Knox, 95 Theses, Scripture)
+        // Spawn Reformation cartoon bonus collectibles (chunky silhouettes, slightly slower drift)
         g.bonusTimer -= dt;
         if (g.bonusTimer <= 0) {
-          const kind = BONUS_KINDS[Math.floor(Math.random() * BONUS_KINDS.length)];
-          g.bonuses.push({
-            kind,
-            x: LOGICAL_W + 40,
-            y: GROUND_Y - 84 - Math.random() * 34,
-            r: 17,
-            collected: false,
-            phase: Math.random() * 6,
-          });
-          g.bonusTimer = 3.2 + Math.random() * 2.8;
+          const spawnX = logicalW + 40;
+          const tBonus = (spawnX - playerCenterX) / (g.speed * 0.75);
+          const hasConflict = g.obstacles.some(
+            (ob) => Math.abs((ob.x + ob.w / 2 - playerCenterX) / g.speed - tBonus) < 0.45
+          );
+          if (hasConflict) {
+            g.bonusTimer = 0.55;
+          } else {
+            const kind = BONUS_KINDS[Math.floor(Math.random() * BONUS_KINDS.length)];
+            g.bonuses.push({
+              kind,
+              x: spawnX,
+              y: GROUND_Y - 84 - Math.random() * 34,
+              r: 19,
+              collected: false,
+              phase: Math.random() * 6,
+            });
+            g.bonusTimer = 3.2 + Math.random() * 2.8;
+          }
         }
 
         // Update obstacles & forgiving hitbox collision
@@ -1105,6 +1120,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
           if (pRight > oLeft && pLeft < oRight && pBottom > oTop && pTop < oBottom) {
             g.status = 'gameover';
             g.shakeTime = 0.28;
+            g.gameOverLock = 0.45;
             playSynth(audioCtxRef, mutedRef.current, 'bonk');
             spawnDust(PLAYER_X + PLAYER_W / 2, g.playerY - 24, 16, ['#EF4444', '#EA7824', '#2857A4']);
 
@@ -1127,27 +1143,35 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
         }
         g.obstacles = g.obstacles.filter((o) => o.x + o.w > -40);
 
-        // Update bonuses
+        // Update bonuses (drift at 0.75 * speed so players can read and line them up)
         for (const b of g.bonuses) {
-          b.x -= g.speed * dt;
+          b.x -= g.speed * 0.75 * dt;
           if (!b.collected) {
             const dx = PLAYER_X + PLAYER_W / 2 - b.x;
             const dy = g.playerY - curH / 2 - b.y;
             if (dx * dx + dy * dy < (b.r + 22) * (b.r + 22)) {
               b.collected = true;
-              g.bonusPoints += 50;
+              g.bonusStreak += 1;
+              const pts = 50 + Math.min(g.bonusStreak - 1, 4) * 10;
+              g.bonusPoints += pts;
               const meta = BONUS_META[b.kind];
-              playSynth(audioCtxRef, mutedRef.current, 'bonus');
+              const label =
+                meta.popup.replace('+50', `+${pts}`) +
+                (g.bonusStreak >= 2 ? ` ${g.bonusStreak}x!` : '');
+              playSynth(audioCtxRef, mutedRef.current, 'bonus', g.bonusStreak);
               spawnDust(b.x, b.y, 12, ['#FBBF24', '#EA7824', '#2857A4']);
               g.floatingTexts.push({
-                x: Math.max(95, Math.min(LOGICAL_W - 95, b.x)),
+                x: Math.max(95, Math.min(logicalW - 95, b.x)),
                 y: b.y - 12,
-                text: meta.popup,
+                text: label,
                 life: 1.05,
                 color: meta.color,
               });
             }
           }
+        }
+        if (g.bonuses.some((b) => !b.collected && b.x <= -30)) {
+          g.bonusStreak = 0;
         }
         g.bonuses = g.bonuses.filter((b) => !b.collected && b.x > -30);
       }
@@ -1169,7 +1193,8 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
 
       // --- DRAW ---
       ctx.save();
-      ctx.scale(dpr, dpr);
+      const scale = (cssH / LOGICAL_H) * dpr;
+      ctx.scale(scale, scale);
 
       if (g.shakeTime > 0) {
         const mag = g.shakeTime * 18;
@@ -1186,27 +1211,28 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
         sky.addColorStop(1, '#FAF9F6');
       }
       ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+      ctx.fillRect(0, 0, logicalW, LOGICAL_H);
 
       // Subtle stars in dark mode or warm sun in light mode
       if (isDark) {
         ctx.fillStyle = 'rgba(255,255,255,0.28)';
         const stars = [
-          [70, 34], [190, 52], [310, 26], [490, 44], [620, 28], [760, 56], [810, 30],
+          [0.08, 34], [0.22, 52], [0.36, 26], [0.55, 44], [0.72, 28], [0.86, 56], [0.94, 30],
         ];
-        for (const [sx, sy] of stars) {
+        for (const [fx, sy] of stars) {
           ctx.beginPath();
-          ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+          ctx.arc(fx * logicalW, sy, 1.5, 0, Math.PI * 2);
           ctx.fill();
         }
       } else {
+        const sunX = logicalW - 75;
         ctx.fillStyle = 'rgba(234, 120, 36, 0.16)';
         ctx.beginPath();
-        ctx.arc(785, 48, 26, 0, Math.PI * 2);
+        ctx.arc(sunX, 48, 26, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = 'rgba(234, 120, 36, 0.35)';
         ctx.beginPath();
-        ctx.arc(785, 48, 16, 0, Math.PI * 2);
+        ctx.arc(sunX, 48, 16, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -1219,31 +1245,31 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
         ctx.fill();
       }
 
-      // Distant subtle hills
+      // Distant subtle hills spanning logicalW
       ctx.fillStyle = isDark ? 'rgba(40, 87, 164, 0.14)' : 'rgba(40, 87, 164, 0.08)';
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
-      ctx.quadraticCurveTo(180, GROUND_Y - 38, 360, GROUND_Y);
-      ctx.quadraticCurveTo(560, GROUND_Y - 48, 760, GROUND_Y);
-      ctx.quadraticCurveTo(830, GROUND_Y - 22, LOGICAL_W, GROUND_Y);
-      ctx.lineTo(LOGICAL_W, GROUND_Y);
+      ctx.quadraticCurveTo(logicalW * 0.21, GROUND_Y - 38, logicalW * 0.42, GROUND_Y);
+      ctx.quadraticCurveTo(logicalW * 0.65, GROUND_Y - 48, logicalW * 0.88, GROUND_Y);
+      ctx.quadraticCurveTo(logicalW * 0.96, GROUND_Y - 22, logicalW, GROUND_Y);
+      ctx.lineTo(logicalW, GROUND_Y);
       ctx.closePath();
       ctx.fill();
 
       // Track ground fill & horizon line
       ctx.fillStyle = isDark ? '#1B2230' : '#EFECE4';
-      ctx.fillRect(0, GROUND_Y, LOGICAL_W, LOGICAL_H - GROUND_Y);
+      ctx.fillRect(0, GROUND_Y, logicalW, LOGICAL_H - GROUND_Y);
 
       ctx.strokeStyle = isDark ? '#3B4861' : '#CBD5E1';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
-      ctx.lineTo(LOGICAL_W, GROUND_Y);
+      ctx.lineTo(logicalW, GROUND_Y);
       ctx.stroke();
 
       // Scrolling track dashes / pebbles
       ctx.fillStyle = isDark ? '#334155' : '#CBD5E1';
-      for (let x = -g.groundOffset; x < LOGICAL_W + 48; x += 48) {
+      for (let x = Math.round(-g.groundOffset); x < logicalW + 48; x += 48) {
         ctx.fillRect(x, GROUND_Y + 12, 16, 3);
         ctx.fillRect(x + 26, GROUND_Y + 24, 8, 2.5);
       }
@@ -1357,11 +1383,40 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
               ref={canvasRef}
               tabIndex={0}
               onPointerDown={(e) => {
+                pointerStartYRef.current = e.clientY;
+                swipedDownRef.current = false;
                 e.currentTarget.focus();
                 triggerJumpPress();
               }}
-              onPointerUp={triggerJumpRelease}
-              onPointerCancel={triggerJumpRelease}
+              onPointerMove={(e) => {
+                if (
+                  pointerStartYRef.current !== null &&
+                  !swipedDownRef.current &&
+                  e.clientY - pointerStartYRef.current > 24
+                ) {
+                  swipedDownRef.current = true;
+                  triggerJumpRelease();
+                  setDucking(true);
+                }
+              }}
+              onPointerUp={() => {
+                pointerStartYRef.current = null;
+                if (swipedDownRef.current) {
+                  swipedDownRef.current = false;
+                  setDucking(false);
+                } else {
+                  triggerJumpRelease();
+                }
+              }}
+              onPointerCancel={() => {
+                pointerStartYRef.current = null;
+                if (swipedDownRef.current) {
+                  swipedDownRef.current = false;
+                  setDucking(false);
+                } else {
+                  triggerJumpRelease();
+                }
+              }}
               aria-label="Tulip Run mini-game canvas. Click or press Space to jump."
               className="block w-full h-[210px] sm:h-[250px] md:h-[260px] cursor-pointer focus:outline-none"
             />
@@ -1394,6 +1449,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
             {status === 'gameover' && (
               <div
                 onClick={() => {
+                  if (gameRef.current.gameOverLock > 0) return;
                   canvasRef.current?.focus();
                   resetAndStart();
                 }}
@@ -1414,6 +1470,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (gameRef.current.gameOverLock > 0) return;
                       canvasRef.current?.focus();
                       resetAndStart();
                     }}

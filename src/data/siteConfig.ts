@@ -82,7 +82,7 @@ export const siteConfig = {
     intro:
       "I’m not trying to get hired by Big Tech, and this isn’t a flashy tech resume. I just genuinely love building useful, clean, ad-free apps and browser extensions for my church, my friends, and everyday people.",
     tulipStory:
-      'Why "Tulip Works"? A quiet nod to Reformed theology (if you know, you know), a genuine love of tulips, and a soft spot for tinkering with ideas until they bloom into something genuinely useful.',
+      'Why "Tulip Works"? I love reformed theology, I grew up in Ukraine and Tulips were (and still are!) my favourite flower, and I have Dutch heritage. It also gives me great pleasure to tinker with ideas until they bloom into something genuinely useful.',
     mission:
       "If you clicked over here from one of my Chrome extensions, Android apps, or Windows/Mac tools — welcome! Everything I make lives right here so you can grab whatever else looks handy, no accounts or tracking required.",
     quickFacts: [

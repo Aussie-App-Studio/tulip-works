@@ -1,6 +1,5 @@
 import { Github, Mail, MapPin } from 'lucide-react';
 import { siteConfig } from '../data/siteConfig';
-import { TulipLogo } from './TulipLogo';
 
 export function AboutSection() {
   const { about } = siteConfig;
@@ -74,30 +73,6 @@ export function AboutSection() {
                   </p>
                 </div>
               ))}
-            </div>
-
-            {/* Dual Brand Mark Card showing both Light & Dark Tulip Works logos */}
-            <div className="p-5 rounded-3xl bg-white dark:bg-[#212734] border border-slate-200/85 dark:border-slate-700/75 flex items-center justify-between gap-4">
-              <div>
-                <p className="font-display font-bold text-sm text-slate-900 dark:text-white">
-                  Built for Day &amp; Night
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Two official Tulip Works badges — one for sunny mornings, one for late-night tinkering.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <TulipLogo
-                  variant="light"
-                  className="w-13 h-13 rounded-xl border border-slate-200 shadow-xs"
-                  alt="Tulip Works light logo"
-                />
-                <TulipLogo
-                  variant="dark"
-                  className="w-13 h-13 rounded-xl border border-slate-700 shadow-xs"
-                  alt="Tulip Works dark logo"
-                />
-              </div>
             </div>
           </div>
         </div>

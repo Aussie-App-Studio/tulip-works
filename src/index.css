@@ -76,3 +76,100 @@
 .animate-float-delayed {
   animation: floatSlow 6.5s ease-in-out 1.4s infinite;
 }
+
+@keyframes tulipSprout {
+  0% {
+    transform: scaleY(0.08) scaleX(0.5);
+    opacity: 0;
+  }
+  70% {
+    transform: scaleY(1.1) scaleX(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tulipSway {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes giantPop {
+  0% {
+    transform: scale(0.76);
+  }
+  60% {
+    transform: scale(1.07);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes windmillSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes petalDrift {
+  0% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(42px) translateX(14px) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes sproutWobble {
+  0%, 100% {
+    transform: rotate(-8deg) scale(1);
+  }
+  50% {
+    transform: rotate(8deg) scale(1.08);
+  }
+}
+
+.animate-tulip-sprout {
+  transform-origin: bottom center;
+  animation: tulipSprout 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-tulip-sway {
+  transform-origin: bottom center;
+  animation: tulipSway 3.6s ease-in-out infinite;
+}
+
+.animate-giant-pop {
+  transform-origin: bottom center;
+  animation: giantPop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-windmill-spin {
+  transform-origin: center;
+  animation: windmillSpin 7s linear infinite;
+}
+
+.animate-petal-drift {
+  animation: petalDrift 3.4s ease-in infinite;
+}
+
+.animate-sprout-wobble {
+  transform-origin: bottom center;
+  animation: sproutWobble 0.24s ease-in-out infinite;
+}

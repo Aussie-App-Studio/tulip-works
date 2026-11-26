@@ -4,6 +4,7 @@ import { Hero } from './components/Hero';
 import { TulipRunner } from './components/TulipRunner';
 import { AppCatalog } from './components/AppCatalog';
 import { InProduction } from './components/InProduction';
+import { RecommendedSection } from './components/RecommendedSection';
 import { SupportSection } from './components/SupportSection';
 import { AboutSection } from './components/AboutSection';
 import { Footer } from './components/Footer';
@@ -75,6 +76,8 @@ export function App() {
         <TulipRunner theme={theme} />
 
         <InProduction />
+
+        <RecommendedSection />
 
         <SupportSection
           onSelectTier={(tier) =>

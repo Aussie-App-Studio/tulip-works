@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '#apps', label: 'Apps' },
   { href: '#tulip-run', label: 'Tulip Run 🌷' },
   { href: '#in-production', label: 'In Production' },
+  { href: '#recommended', label: 'Recommended' },
   { href: '#about', label: 'About Me' },
 ];
 
