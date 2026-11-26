@@ -208,6 +208,10 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
   const [babyStepPhase, setBabyStepPhase] = useState(0);
   const [babySquash, setBabySquash] = useState({ sx: 1, sy: 1, rot: 0 });
   const [babySpeech, setBabySpeech] = useState<string | null>(null);
+  const [heroProgress, setHeroProgress] = useState<string | null>(null);
+  const [babyProgress, setBabyProgress] = useState<string | null>(null);
+  const [heroFleeing, setHeroFleeing] = useState(false);
+  const [babyFleeing, setBabyFleeing] = useState(false);
 
   const timersRef = useRef<number[]>([]);
 
@@ -235,6 +239,15 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
     sparkSeq: 1,
     speechTimer: 0,
     babySpeechTimer: 0,
+    heroProgressTimer: 0,
+    babyProgressTimer: 0,
+    lastCatchAt: -9999,
+    lastHeroFleeAt: -9999,
+    lastHeroFleeX: 0,
+    lastHeroFleeY: 0,
+    lastBabyFleeAt: -9999,
+    lastBabyFleeX: 0,
+    lastBabyFleeY: 0,
     actionTimer: 0,
     actionDuration: 0,
     actionPhase: 0,
@@ -402,6 +415,36 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
     s.babySpeechTimer = window.setTimeout(() => {
       setBabySpeech(null);
       s.babySpeechTimer = 0;
+    }, durationMs);
+  };
+
+  const showHeroProgress = (text: string | null, durationMs = 1600) => {
+    const s = stateRef.current;
+    if (s.heroProgressTimer) window.clearTimeout(s.heroProgressTimer);
+    if (!text) {
+      setHeroProgress(null);
+      s.heroProgressTimer = 0;
+      return;
+    }
+    setHeroProgress(text);
+    s.heroProgressTimer = window.setTimeout(() => {
+      setHeroProgress(null);
+      s.heroProgressTimer = 0;
+    }, durationMs);
+  };
+
+  const showBabyProgress = (text: string | null, durationMs = 1600) => {
+    const s = stateRef.current;
+    if (s.babyProgressTimer) window.clearTimeout(s.babyProgressTimer);
+    if (!text) {
+      setBabyProgress(null);
+      s.babyProgressTimer = 0;
+      return;
+    }
+    setBabyProgress(text);
+    s.babyProgressTimer = window.setTimeout(() => {
+      setBabyProgress(null);
+      s.babyProgressTimer = 0;
     }, durationMs);
   };
 
@@ -783,6 +826,8 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
       for (const id of timersRef.current) window.clearTimeout(id);
       if (stateRef.current.speechTimer) window.clearTimeout(stateRef.current.speechTimer);
       if (stateRef.current.babySpeechTimer) window.clearTimeout(stateRef.current.babySpeechTimer);
+      if (stateRef.current.heroProgressTimer) window.clearTimeout(stateRef.current.heroProgressTimer);
+      if (stateRef.current.babyProgressTimer) window.clearTimeout(stateRef.current.babyProgressTimer);
     };
   }, []);
 
@@ -829,7 +874,9 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
       s.landingIntoGame = intoGame;
       s.mode = 'jumping';
       s.facing = endX >= s.x ? 1 : -1;
+      s.flee.active = false;
 
+      setHeroFleeing(false);
       setFacing(s.facing);
       setMode('jumping');
       setWalking(false);
@@ -871,7 +918,9 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
       b.landingIntoGame = intoGame;
       b.mode = 'jumping';
       b.facing = endX >= b.x ? 1 : -1;
+      b.flee.active = false;
 
+      setBabyFleeing(false);
       setBabyFacing(b.facing);
       setBabyJumping(true);
       setBabyWalking(false);
@@ -1112,10 +1161,50 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
       stateRef.current.pointer.active = false;
     };
 
+    const onWindowClickCapture = (e: MouseEvent) => {
+      const s = stateRef.current;
+      const now = performance.now();
+      // Swallow trailing click event right after catching via onPointerDown
+      if (now - s.lastCatchAt < 350) {
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+      // Swallow accidental misclicks on underlying cards while chasing an escaping buddy
+      if (!s.initialized && !s.baby.active) return;
+      const docX = e.clientX + window.scrollX;
+      const docY = e.clientY + window.scrollY;
+      const heroDims = getHeroDims(s.heroSpecies);
+      const nearHeroFlee =
+        s.initialized &&
+        s.mode === 'perched' &&
+        s.currentEl?.dataset.tulipPerch !== 'game' &&
+        now - s.lastHeroFleeAt < 450 &&
+        Math.hypot(
+          docX - (s.lastHeroFleeX + heroDims.w / 2),
+          docY - (s.lastHeroFleeY + heroDims.h / 2)
+        ) < 95;
+      const nearBabyFlee =
+        s.baby.active &&
+        s.baby.mode === 'perched' &&
+        s.baby.currentEl?.dataset.tulipPerch !== 'game' &&
+        now - s.lastBabyFleeAt < 450 &&
+        Math.hypot(
+          docX - (s.lastBabyFleeX + BABY_W / 2),
+          docY - (s.lastBabyFleeY + BABY_H / 2)
+        ) < 95;
+
+      if (nearHeroFlee || nearBabyFlee) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     document.addEventListener('mouseleave', onPointerLeave);
+    window.addEventListener('click', onWindowClickCapture, true);
 
     let rafId = 0;
     let last = performance.now();
@@ -2321,58 +2410,64 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
               const shouldFlee =
                 cursorActive &&
                 s.currentEl.dataset.tulipPerch !== 'game' &&
-                Math.abs(dyCursor) < 92 &&
-                distCursor < (f.active ? 155 : 118);
+                Math.abs(dyCursor) < 88 &&
+                distCursor < (f.active ? 135 : 98);
 
               if (shouldFlee) {
                 if (!f.active) {
                   f.active = true;
                   f.alertTimer = 0.24;
+                  setHeroFleeing(true);
                   setExpression('surprised');
 
                   if (f.moodTimer <= 0) {
-                    const turboChance = Math.min(0.68, 0.22 + f.recentCatches * 0.16);
+                    const turboChance = Math.min(0.42, 0.14 + f.recentCatches * 0.09);
                     const roll = Math.random();
                     if (roll < turboChance) {
                       f.mood = 'turbo';
-                      f.moodTimer = 2.6 + Math.random() * 1.4;
-                    } else if (roll < turboChance + 0.14) {
+                      f.moodTimer = 2.0 + Math.random() * 1.1;
+                    } else if (roll < turboChance + 0.16) {
                       f.mood = 'tired';
-                      f.moodTimer = 2.2 + Math.random() * 0.9;
-                      f.tiredPauseTimer = 0.35;
+                      f.moodTimer = 2.4 + Math.random() * 0.9;
+                      f.tiredPauseTimer = 0.45;
                     } else {
                       f.mood = 'playful';
-                      f.moodTimer = 3.0 + Math.random() * 1.8;
+                      f.moodTimer = 2.6 + Math.random() * 1.4;
                     }
                   }
 
                   if (f.speechCooldown <= 0) {
                     const moodLines =
-                      f.mood === 'turbo'
-                        ? ['nyoom! 💨', 'too slow!', 'turbo!! ⚡']
-                        : f.mood === 'tired'
-                          ? ['phew...']
-                          : ['eek!', 'nope!', 'catch me!', 'hehe!'];
-                    showSpeech(moodLines[Math.floor(Math.random() * moodLines.length)], 900);
+                      s.pokeCount === 0
+                        ? ['catch me! ✨', 'psst... catch me!']
+                        : f.mood === 'turbo'
+                          ? ['nyoom! 💨', 'too slow!', 'turbo!! ⚡']
+                          : f.mood === 'tired'
+                            ? ['phew...']
+                            : ['eek!', 'nope!', 'catch me!', 'hehe!'];
+                    showSpeech(moodLines[Math.floor(Math.random() * moodLines.length)], 950);
                     f.speechCooldown = 2.3;
                   }
                 }
 
+                s.lastHeroFleeAt = now;
+                s.lastHeroFleeX = s.x;
+                s.lastHeroFleeY = s.y;
                 f.chaseDuration += dt;
                 f.moodTimer -= dt;
                 if (f.alertTimer <= 0) setExpression('normal');
 
                 if (
-                  (f.chaseDuration > 3.1 && f.mood !== 'tired') ||
+                  (f.chaseDuration > 2.0 && f.mood !== 'tired') ||
                   (f.mood === 'turbo' && f.moodTimer <= 0)
                 ) {
                   f.mood = 'tired';
-                  f.moodTimer = 2.3;
-                  f.tiredPauseTimer = 0.55;
+                  f.moodTimer = 2.5;
+                  f.tiredPauseTimer = 0.65;
                   f.recentCatches = 0;
                 } else if (f.mood === 'tired' && f.moodTimer <= 0) {
                   f.mood = 'playful';
-                  f.moodTimer = 2.6;
+                  f.moodTimer = 2.4;
                   f.chaseDuration = 0;
                 }
 
@@ -2399,21 +2494,21 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                       s.facing = fleeDir;
                       setFacing(fleeDir);
                     }
-                    s.x = Math.min(maxX, Math.max(minX, s.x + fleeDir * 85 * dt));
-                    s.stride += dt * 16;
+                    s.x = Math.min(maxX, Math.max(minX, s.x + fleeDir * 65 * dt));
+                    s.stride += dt * 14;
                     setWalking(true);
                     setStepPhase(Math.sin(s.stride));
                     setSquash({ sx: 1, sy: 1, rot: 4 * fleeDir + Math.sin(s.stride) * 3 });
                     setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -2 });
                   }
                 } else if (f.mood === 'playful') {
-                  if (cornered && distCursor < 82 && f.dodgeCooldown <= 0) {
+                  if (cornered && distCursor < 68 && f.dodgeCooldown <= 0) {
                     const vaultX =
                       fleeDir === -1
                         ? Math.min(maxX, r.left + r.width * 0.72)
                         : Math.max(minX, r.left + r.width * 0.22);
                     launchJumpTo(s.currentEl, false, vaultX);
-                    s.jumpDuration = 0.44;
+                    s.jumpDuration = 0.48;
                     s.jumpArcHeight = 58;
                     f.dodgeCooldown = 1.6;
                   } else {
@@ -2422,36 +2517,36 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                       s.facing = fleeDir;
                       setFacing(fleeDir);
                     }
-                    s.x = Math.min(maxX, Math.max(minX, s.x + fleeDir * 185 * dt));
-                    s.stride += dt * 28;
+                    s.x = Math.min(maxX, Math.max(minX, s.x + fleeDir * 125 * dt));
+                    s.stride += dt * 22;
                     setWalking(true);
                     setStepPhase(Math.sin(s.stride));
-                    setSquash({ sx: 1, sy: 1, rot: 10 * fleeDir + Math.sin(s.stride) * 4 });
-                    setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -3.5 });
+                    setSquash({ sx: 1, sy: 1, rot: 8 * fleeDir + Math.sin(s.stride) * 4 });
+                    setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -3 });
                     if (f.puffCooldown <= 0) {
-                      f.puffCooldown = 0.22;
+                      f.puffCooldown = 0.25;
                       emitSparks(s.x + heroW / 2 - fleeDir * 10, s.y + heroH - 4, 2, ['#94A3B8', '#CBD5E1']);
                     }
                   }
                 } else {
-                  if ((distCursor < 68 || (cornered && distCursor < 115)) && f.dodgeCooldown <= 0) {
-                    f.dodgeCooldown = 1.15;
+                  if ((distCursor < 52 || (cornered && distCursor < 95)) && f.dodgeCooldown <= 0) {
+                    f.dodgeCooldown = 1.25;
                     const vh = window.innerHeight;
                     const peers = getPerches().filter((el) => {
                       if (el === s.currentEl || el.dataset.tulipPerch === 'game') return false;
                       const pr = el.getBoundingClientRect();
                       return pr.top > 110 && pr.top < vh * 0.78;
                     });
-                    if (peers.length > 0 && Math.random() < 0.65) {
+                    if (peers.length > 0 && Math.random() < 0.55) {
                       launchJumpTo(peers[Math.floor(Math.random() * peers.length)], false);
-                      s.jumpDuration = Math.min(s.jumpDuration, 0.46);
+                      s.jumpDuration = Math.min(s.jumpDuration, 0.48);
                     } else {
                       const vaultX =
                         s.x < r.left + r.width * 0.5
                           ? Math.min(maxX, r.right - 26 - heroW)
                           : Math.max(minX, r.left + 26);
                       launchJumpTo(s.currentEl, false, vaultX);
-                      s.jumpDuration = 0.38;
+                      s.jumpDuration = 0.42;
                       s.jumpArcHeight = 64;
                     }
                     if (f.speechCooldown <= 0) {
@@ -2464,14 +2559,14 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                       s.facing = fleeDir;
                       setFacing(fleeDir);
                     }
-                    s.x = Math.min(maxX, Math.max(minX, s.x + fleeDir * 360 * dt));
-                    s.stride += dt * 42;
+                    s.x = Math.min(maxX, Math.max(minX, s.x + fleeDir * 225 * dt));
+                    s.stride += dt * 32;
                     setWalking(true);
                     setStepPhase(Math.sin(s.stride));
-                    setSquash({ sx: 1, sy: 1, rot: 17 * fleeDir + Math.sin(s.stride) * 5 });
-                    setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -4.5 });
+                    setSquash({ sx: 1, sy: 1, rot: 14 * fleeDir + Math.sin(s.stride) * 5 });
+                    setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -4 });
                     if (f.puffCooldown <= 0) {
-                      f.puffCooldown = 0.11;
+                      f.puffCooldown = 0.14;
                       emitSparks(
                         s.x + heroW / 2 - fleeDir * 12,
                         s.y + heroH - 6,
@@ -2484,6 +2579,7 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
               } else {
                 if (f.active) {
                   f.active = false;
+                  setHeroFleeing(false);
                   setExpression('normal');
                   s.walkPause = 0.55;
                 }
@@ -3035,50 +3131,56 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                   const babyShouldFlee =
                     cursorActive &&
                     b.currentEl.dataset.tulipPerch !== 'game' &&
-                    Math.abs(dyCursor) < 92 &&
-                    distCursor < (bf.active ? 160 : 132);
+                    Math.abs(dyCursor) < 88 &&
+                    distCursor < (bf.active ? 142 : 108);
 
                   if (babyShouldFlee) {
                     if (!bf.active) {
                       bf.active = true;
+                      setBabyFleeing(true);
                       if (bf.moodTimer <= 0) {
                         const rRoll = Math.random();
-                        if (rRoll < 0.3) {
+                        if (rRoll < 0.2) {
                           bf.mood = 'zip';
-                          bf.moodTimer = 2.0 + Math.random() * 1.0;
-                        } else if (rRoll < 0.42) {
+                          bf.moodTimer = 1.6 + Math.random() * 0.9;
+                        } else if (rRoll < 0.36) {
                           bf.mood = 'tired';
-                          bf.moodTimer = 2.2;
-                          bf.tiredPauseTimer = 0.4;
+                          bf.moodTimer = 2.4;
+                          bf.tiredPauseTimer = 0.45;
                         } else {
                           bf.mood = 'nimble';
-                          bf.moodTimer = 2.6 + Math.random() * 1.2;
+                          bf.moodTimer = 2.4 + Math.random() * 1.1;
                         }
                       }
                       if (bf.speechCooldown <= 0) {
                         const lines =
-                          bf.mood === 'zip'
-                            ? ['too small! 💨', 'zip! ✨']
-                            : bf.mood === 'tired'
-                              ? ['huff...']
-                              : ['heehee!', 'catch me!'];
-                        showBabySpeech(lines[Math.floor(Math.random() * lines.length)], 850);
+                          b.pokeCount === 0
+                            ? ['catch me! ✨', 'catch me 3x!']
+                            : bf.mood === 'zip'
+                              ? ['too small! 💨', 'zip! ✨']
+                              : bf.mood === 'tired'
+                                ? ['huff...']
+                                : ['heehee!', 'catch me!'];
+                        showBabySpeech(lines[Math.floor(Math.random() * lines.length)], 900);
                         bf.speechCooldown = 2.1;
                       }
                     }
 
+                    s.lastBabyFleeAt = now;
+                    s.lastBabyFleeX = b.x;
+                    s.lastBabyFleeY = b.y;
                     bf.chaseDuration += dt;
                     bf.moodTimer -= dt;
                     if (
-                      (bf.chaseDuration > 2.6 && bf.mood !== 'tired') ||
+                      (bf.chaseDuration > 1.8 && bf.mood !== 'tired') ||
                       (bf.mood === 'zip' && bf.moodTimer <= 0)
                     ) {
                       bf.mood = 'tired';
-                      bf.moodTimer = 2.2;
-                      bf.tiredPauseTimer = 0.5;
+                      bf.moodTimer = 2.4;
+                      bf.tiredPauseTimer = 0.65;
                     } else if (bf.mood === 'tired' && bf.moodTimer <= 0) {
                       bf.mood = 'nimble';
-                      bf.moodTimer = 2.4;
+                      bf.moodTimer = 2.2;
                       bf.chaseDuration = 0;
                     }
 
@@ -3105,54 +3207,54 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                           b.facing = fleeDir;
                           setBabyFacing(fleeDir);
                         }
-                        b.x = Math.min(maxX, Math.max(minX, b.x + fleeDir * 90 * dt));
-                        b.stride += dt * 18;
+                        b.x = Math.min(maxX, Math.max(minX, b.x + fleeDir * 65 * dt));
+                        b.stride += dt * 15;
                         setBabyWalking(true);
                         setBabyStepPhase(Math.sin(b.stride));
                         setBabySquash({ sx: 1, sy: 1, rot: 4 * fleeDir + Math.sin(b.stride) * 3 });
                         setBabyPos({ x: b.x, y: b.y + Math.abs(Math.sin(b.stride)) * -2 });
                       }
                     } else if (bf.mood === 'nimble') {
-                      if (cornered && distCursor < 92 && bf.dodgeCooldown <= 0) {
-                        bf.dodgeCooldown = 1.3;
+                      if (cornered && distCursor < 72 && bf.dodgeCooldown <= 0) {
+                        bf.dodgeCooldown = 1.35;
                         const vaultX =
                           fleeDir === -1
                             ? Math.min(maxX, br.left + br.width * 0.74)
                             : Math.max(minX, br.left + br.width * 0.22);
                         launchBabyJumpTo(b.currentEl, false, vaultX);
-                        b.jumpDuration = 0.4;
+                        b.jumpDuration = 0.44;
                       } else {
                         babyIsStrolling = true;
                         if (fleeDir !== b.facing) {
                           b.facing = fleeDir;
                           setBabyFacing(fleeDir);
                         }
-                        b.x = Math.min(maxX, Math.max(minX, b.x + fleeDir * 235 * dt));
-                        b.stride += dt * 32;
+                        b.x = Math.min(maxX, Math.max(minX, b.x + fleeDir * 155 * dt));
+                        b.stride += dt * 25;
                         setBabyWalking(true);
                         setBabyStepPhase(Math.sin(b.stride));
-                        setBabySquash({ sx: 1, sy: 1, rot: 11 * fleeDir + Math.sin(b.stride) * 4 });
-                        setBabyPos({ x: b.x, y: b.y + Math.abs(Math.sin(b.stride)) * -3.5 });
+                        setBabySquash({ sx: 1, sy: 1, rot: 9 * fleeDir + Math.sin(b.stride) * 4 });
+                        setBabyPos({ x: b.x, y: b.y + Math.abs(Math.sin(b.stride)) * -3 });
                       }
                     } else {
-                      if ((distCursor < 72 || (cornered && distCursor < 120)) && bf.dodgeCooldown <= 0) {
-                        bf.dodgeCooldown = 1.05;
+                      if ((distCursor < 54 || (cornered && distCursor < 96)) && bf.dodgeCooldown <= 0) {
+                        bf.dodgeCooldown = 1.2;
                         const vh = window.innerHeight;
                         const peers = getPerches().filter((el) => {
                           if (el === b.currentEl || el.dataset.tulipPerch === 'game') return false;
                           const pr = el.getBoundingClientRect();
                           return pr.top > 110 && pr.top < vh * 0.78;
                         });
-                        if (peers.length > 0 && Math.random() < 0.55) {
+                        if (peers.length > 0 && Math.random() < 0.5) {
                           launchBabyJumpTo(peers[Math.floor(Math.random() * peers.length)], false);
-                          b.jumpDuration = Math.min(b.jumpDuration, 0.42);
+                          b.jumpDuration = Math.min(b.jumpDuration, 0.46);
                         } else {
                           const vaultX =
                             b.x < br.left + br.width * 0.5
                               ? Math.min(maxX, br.right - 22 - BABY_W)
                               : Math.max(minX, br.left + 22);
                           launchBabyJumpTo(b.currentEl, false, vaultX);
-                          b.jumpDuration = 0.36;
+                          b.jumpDuration = 0.4;
                         }
                       } else {
                         babyIsStrolling = true;
@@ -3160,14 +3262,14 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                           b.facing = fleeDir;
                           setBabyFacing(fleeDir);
                         }
-                        b.x = Math.min(maxX, Math.max(minX, b.x + fleeDir * 380 * dt));
-                        b.stride += dt * 44;
+                        b.x = Math.min(maxX, Math.max(minX, b.x + fleeDir * 245 * dt));
+                        b.stride += dt * 34;
                         setBabyWalking(true);
                         setBabyStepPhase(Math.sin(b.stride));
-                        setBabySquash({ sx: 1, sy: 1, rot: 16 * fleeDir + Math.sin(b.stride) * 5 });
-                        setBabyPos({ x: b.x, y: b.y + Math.abs(Math.sin(b.stride)) * -4 });
+                        setBabySquash({ sx: 1, sy: 1, rot: 14 * fleeDir + Math.sin(b.stride) * 5 });
+                        setBabyPos({ x: b.x, y: b.y + Math.abs(Math.sin(b.stride)) * -3.5 });
                         if (bf.puffCooldown <= 0) {
-                          bf.puffCooldown = 0.12;
+                          bf.puffCooldown = 0.15;
                           emitSparks(b.x + BABY_W / 2 - fleeDir * 10, b.y + BABY_H - 4, 2, ['#6AA2FF', '#FBBF24']);
                         }
                       }
@@ -3175,6 +3277,7 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
                   } else {
                     if (bf.active) {
                       bf.active = false;
+                      setBabyFleeing(false);
                       b.walkPause = 0.5;
                     }
                     bf.chaseDuration = Math.max(0, bf.chaseDuration - dt * 1.5);
@@ -3257,6 +3360,7 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onPointerMove);
       document.removeEventListener('mouseleave', onPointerLeave);
+      window.removeEventListener('click', onWindowClickCapture, true);
       cancelAnimationFrame(rafId);
     };
   }, []);
@@ -3322,6 +3426,7 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
     if ((s.mode !== 'perched' && s.mode !== 'replacing') || !s.currentEl) return;
     if (s.mode === 'replacing' && s.replaceState.phase === 'jump-to-bloom') return;
 
+    s.lastCatchAt = performance.now();
     const wasFleeing = s.flee.active;
     s.flee.active = false;
     s.flee.chaseDuration = 0;
@@ -3329,6 +3434,7 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
     s.flee.tiredPauseTimer = 0;
     s.flee.moodTimer = 0;
     s.flee.recentCatches = Math.min(4, s.flee.recentCatches + 1);
+    setHeroFleeing(false);
     setExpression('normal');
     setLeafTilt(0);
 
@@ -3336,17 +3442,29 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
 
     // 3-stage easter egg milestones for active Hero (Tulip OR Sunflower!)
     if (s.pokeCount >= 8 && !s.unlocked.baby) {
+      showHeroProgress(null);
       startEasterEggBaby(s.currentEl);
       return;
     }
     if (s.pokeCount >= 15 && !s.unlocked.giant) {
+      showHeroProgress(null);
       startEasterEggGiant(s.currentEl);
       return;
     }
     if (s.pokeCount >= 22 && !s.unlocked.building) {
+      showHeroProgress(null);
       startEasterEggBuilding(s.currentEl);
       return;
     }
+
+    const nextHeroProgress = !s.unlocked.baby
+      ? `${s.pokeCount}/8 ?`
+      : !s.unlocked.giant
+        ? `${s.pokeCount}/15 ?`
+        : !s.unlocked.building
+          ? `${s.pokeCount}/22 ?`
+          : null;
+    if (nextHeroProgress) showHeroProgress(nextHeroProgress, 1600);
 
     let teaser: string | undefined;
     if (s.pokeCount === 7 && !s.unlocked.baby) {
@@ -3378,13 +3496,16 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
     const b = s.baby;
     if (!b.active || b.arc !== 'none' || b.mode !== 'perched') return;
 
+    s.lastCatchAt = performance.now();
     b.flee.active = false;
     b.flee.chaseDuration = 0;
     b.flee.moodTimer = 0;
+    setBabyFleeing(false);
     b.pokeCount += 1;
 
     // Click 3: Symmetric Coup!
     if (b.pokeCount >= 3) {
+      showBabyProgress(null);
       b.arc = 'morphing';
       b.arcTimer = 0;
       b.arcStep = 0;
@@ -3431,6 +3552,7 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
       });
     }
 
+    showBabyProgress(`${b.pokeCount}/3 ?`, 1600);
     if (b.pokeCount === 1) {
       showBabySpeech(b.species === 'sunflower' ? 'SUNFLOWER STORM!! 🌻☀️' : 'TULIP STORM!! 🌷✨', 1150);
       emitSparks(b.x + BABY_W / 2, b.y + BABY_H - 4, 10, ['#EA7824', '#2857A4', '#22C55E', '#FBBF24']);
@@ -3632,13 +3754,20 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
             blinking={blinking}
             inGame={babyInGame}
             speech={babySpeech}
+            fleeing={babyFleeing}
+            progressText={babyProgress}
             leafTilt={0}
             mood={babyMood}
             onPoke={handleBabyPoke}
           />
         ) : babyMorphedSpecies === 'tulip' ? (
           <div
-            onClick={handleBabyPoke}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleBabyPoke();
+            }}
+            onClick={(e) => e.stopPropagation()}
             style={{
               left: babyPos.x,
               top: babyPos.y,
@@ -3650,6 +3779,20 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
             }}
             className="pointer-events-auto cursor-pointer absolute"
           >
+            <div
+              aria-hidden="true"
+              className={`absolute ${babyFleeing ? '-inset-3.5' : '-inset-1.5'} rounded-full`}
+            />
+            {babyProgress && (
+              <div
+                style={{ transform: `scaleX(${babyFacing})` }}
+                className={`absolute ${
+                  babySpeech ? '-top-12' : '-top-6'
+                } left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded-full bg-slate-900/85 text-amber-200 font-display font-bold text-[9px] tracking-wide shadow-md pointer-events-none border border-amber-300/40`}
+              >
+                {babyProgress}
+              </div>
+            )}
             {babySpeech && (
               <div
                 style={{ transform: `scaleX(${babyFacing})` }}
@@ -3682,6 +3825,8 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
             blinking={blinking}
             inGame={babyInGame}
             speech={babySpeech}
+            fleeing={babyFleeing}
+            progressText={babyProgress}
             onPoke={handleBabyPoke}
           />
         ))}
@@ -3701,6 +3846,8 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
           blinking={blinking}
           inGame={mode === 'in-game'}
           speech={speech}
+          fleeing={heroFleeing}
+          progressText={heroProgress}
           leafTilt={leafTilt}
           mood={expression === 'happy' ? 'happy' : 'normal'}
           expression={expression}
@@ -3709,8 +3856,13 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
         />
       ) : (
         <div
-          onClick={handlePoke}
-          title="Psst — click me!"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            handlePoke();
+          }}
+          onClick={(e) => e.stopPropagation()}
+          title="Catch me! ✨"
           style={{
             left: pos.x,
             top: pos.y,
@@ -3724,6 +3876,20 @@ export function TulipBuddy({ onSpeciesChange }: TulipBuddyProps = {}) {
             mode === 'in-game' ? 'pointer-events-none' : 'pointer-events-auto cursor-pointer'
           }`}
         >
+          <div
+            aria-hidden="true"
+            className={`absolute ${heroFleeing ? '-inset-3.5' : '-inset-1.5'} rounded-full`}
+          />
+          {heroProgress && (
+            <div
+              style={{ transform: `scaleX(${facing})` }}
+              className={`absolute ${
+                speech ? '-top-12' : '-top-6'
+              } left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded-full bg-slate-900/85 text-amber-200 font-display font-bold text-[9px] tracking-wide shadow-md pointer-events-none border border-amber-300/40`}
+            >
+              {heroProgress}
+            </div>
+          )}
           {speech && (
             <div
               style={{ transform: `scaleX(${facing})` }}

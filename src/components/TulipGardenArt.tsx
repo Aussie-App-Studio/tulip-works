@@ -1050,6 +1050,8 @@ interface BabyBuddyViewProps {
   blinking: boolean;
   inGame: boolean;
   speech: string | null;
+  fleeing?: boolean;
+  progressText?: string | null;
   onPoke: () => void;
 }
 
@@ -1067,12 +1069,19 @@ export function BabyBuddyView({
   blinking,
   inGame,
   speech,
+  fleeing = false,
+  progressText = null,
   onPoke,
 }: BabyBuddyViewProps) {
   const isSun = species === 'sunflower';
   return (
     <div
-      onClick={onPoke}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onPoke();
+      }}
+      onClick={(e) => e.stopPropagation()}
       title={isSun ? 'Mini Sunflower Buddy!' : 'Mini Tulip Buddy!'}
       style={{
         left: x,
@@ -1087,6 +1096,20 @@ export function BabyBuddyView({
         inGame ? 'pointer-events-none' : 'pointer-events-auto cursor-pointer'
       }`}
     >
+      <div
+        aria-hidden="true"
+        className={`absolute ${fleeing ? '-inset-3.5' : '-inset-1.5'} rounded-full`}
+      />
+      {progressText && (
+        <div
+          style={{ transform: `scaleX(${facing})` }}
+          className={`absolute ${
+            speech ? '-top-12' : '-top-6'
+          } left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded-full bg-slate-900/85 text-amber-200 font-display font-bold text-[9px] tracking-wide shadow-md pointer-events-none border border-amber-300/40`}
+        >
+          {progressText}
+        </div>
+      )}
       {speech && (
         <div
           style={{ transform: `scaleX(${facing})` }}
@@ -1336,6 +1359,8 @@ export function SunflowerBuddyView({
   blinking,
   inGame,
   speech,
+  fleeing = false,
+  progressText = null,
   leafTilt,
   mood = 'normal',
   expression = 'normal',
@@ -1344,8 +1369,13 @@ export function SunflowerBuddyView({
 }: SunflowerBuddyViewProps) {
   return (
     <div
-      onClick={onPoke}
-      title="Sunflower Guy — click me!"
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onPoke();
+      }}
+      onClick={(e) => e.stopPropagation()}
+      title="Sunflower Guy — catch me!"
       style={{
         left: x,
         top: y,
@@ -1359,6 +1389,20 @@ export function SunflowerBuddyView({
         inGame ? 'pointer-events-none' : 'pointer-events-auto cursor-pointer'
       }`}
     >
+      <div
+        aria-hidden="true"
+        className={`absolute ${fleeing ? '-inset-3.5' : '-inset-1.5'} rounded-full`}
+      />
+      {progressText && (
+        <div
+          style={{ transform: `scaleX(${facing})` }}
+          className={`absolute ${
+            speech ? '-top-12' : '-top-6'
+          } left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded-full bg-slate-900/85 text-amber-200 font-display font-bold text-[9px] tracking-wide shadow-md pointer-events-none border border-amber-300/40`}
+        >
+          {progressText}
+        </div>
+      )}
       {speech && (
         <div
           style={{ transform: `scaleX(${facing})` }}
@@ -1483,7 +1527,12 @@ export function FallenBuddyItem({
 
   return (
     <div
-      onClick={() => onPoke(fallen.id)}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onPoke(fallen.id);
+      }}
+      onClick={(e) => e.stopPropagation()}
       title={isSun ? 'KO’d Sunflower' : 'KO’d Tulip'}
       style={{
         left: fallen.x,
