@@ -185,13 +185,24 @@ export function RecommendedSection() {
                 <div>
                   {/* Top row: Icon + Kind pill */}
                   <div className="flex items-start justify-between gap-3 mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.accentGradient} text-white shadow-md flex items-center justify-center text-2xl shrink-0 border border-white/15`}
-                    >
-                      <span role="img" aria-label={item.name}>
-                        {item.emoji}
-                      </span>
-                    </div>
+                    {item.icon ? (
+                      <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white dark:bg-slate-800/90 border border-slate-200/85 dark:border-slate-700/80 shadow-sm p-1.5 flex items-center justify-center shrink-0">
+                        <img
+                          src={item.icon}
+                          alt={`${item.name} icon`}
+                          className="w-full h-full object-contain rounded-lg"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.accentGradient} text-white shadow-md flex items-center justify-center text-2xl shrink-0 border border-white/15`}
+                      >
+                        <span role="img" aria-label={item.name}>
+                          {item.emoji}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
                       {item.versionBadge && (

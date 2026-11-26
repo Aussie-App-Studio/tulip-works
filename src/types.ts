@@ -125,6 +125,7 @@ export interface RecommendedItem {
   tagline: string;
   description: string;
   note?: string;
+  icon?: string;
   emoji: string;
   accentGradient: string;
   platforms: string[];

@@ -45,6 +45,23 @@ export interface WindmillState {
   y: number;
   stage: 1 | 2 | 3;
   visible: boolean;
+  sailColors?: string[];
+}
+
+export function getVariantSailColor(variant: TulipVariant, fallbackIdx: number): string {
+  switch (variant) {
+    case 'gold':
+      return '#F59E0B';
+    case 'coral':
+      return '#F43F5E';
+    case 'lavender':
+      return '#8B5CF6';
+    case 'brand-inv':
+      return '#2857A4';
+    case 'brand':
+    default:
+      return fallbackIdx % 2 === 0 ? '#EA7824' : '#2857A4';
+  }
 }
 
 /** Exact perch offset on the Giant Tulip's right leaf relative to its base (x, y). */
@@ -478,9 +495,18 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
           {/* Stage 3: Spinning 4-blade Tulip-Petal Sails */}
           {windmill.stage >= 3 && (
             <g transform="translate(0, -44)">
-              <g className="animate-windmill-spin">
+              <g>
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  from="0 0 0"
+                  to="360 0 0"
+                  dur="6s"
+                  repeatCount="indefinite"
+                />
                 {[0, 90, 180, 270].map((deg, idx) => {
-                  const isOrange = idx % 2 === 0;
+                  const defaultColor = idx % 2 === 0 ? '#EA7824' : '#2857A4';
+                  const sailColor = windmill.sailColors?.[idx] ?? defaultColor;
                   return (
                     <g key={deg} transform={`rotate(${deg})`}>
                       <line
@@ -494,8 +520,8 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
                       />
                       <path
                         d="M0 -8 Q9 -15 8 -26 Q2 -28 0 -20 Z"
-                        fill={isOrange ? '#EA7824' : '#2857A4'}
-                        stroke={isOrange ? '#EA7824' : '#4E89E8'}
+                        fill={sailColor}
+                        stroke={sailColor === '#2857A4' ? '#4E89E8' : sailColor}
                         strokeWidth="1.6"
                         strokeLinejoin="round"
                       />
@@ -520,6 +546,47 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
         </svg>
       </div>
     </div>
+  );
+}
+
+export function CarriedTulipSvg({ variant }: { variant: TulipVariant }) {
+  const style = VARIANT_STYLES[variant];
+  return (
+    <g transform="translate(15, -24) rotate(24) scale(0.65)">
+      <line
+        x1="0"
+        y1="0"
+        x2="0"
+        y2="-12"
+        className="stroke-[#2857A4] dark:stroke-[#4E89E8]"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M-8 -27 L-8 -19 C-8 -13 -4 -11 0 -11 C4 -11 8 -13 8 -19 L8 -27 Q0 -24 -8 -27 Z"
+        className="fill-white dark:fill-[#242B35]"
+      />
+      <path
+        d="M-3.5 -25 Q0 -31 3.5 -25"
+        stroke={style.accentStroke}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M-8 -27 L-8 -19 C-8 -13 -4 -11 0 -11 C4 -11 8 -13 8 -19 L8 -27"
+        className={style.cupStrokeClass}
+        strokeWidth="2.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 -27 Q-3.5 -24 -3.5 -16.5 Q-3.5 -12.5 0 -11"
+        stroke={style.accentStroke}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </g>
   );
 }
 

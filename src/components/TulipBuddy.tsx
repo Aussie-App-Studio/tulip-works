@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   BabyBuddyView,
+  CarriedTulipSvg,
   FlyingSeedItem,
   GIANT_LEAF_OFFSET_X,
   GIANT_LEAF_OFFSET_Y,
@@ -8,6 +9,7 @@ import {
   HatchingSproutItem,
   PlantedTulipItem,
   TulipWindmillLandmark,
+  getVariantSailColor,
   pickTulipVariant,
   type BuddyExpression,
   type FlyingSeed,
@@ -105,6 +107,7 @@ export function TulipBuddy() {
   const [blinking, setBlinking] = useState(false);
   const [expression, setExpression] = useState<BuddyExpression>('normal');
   const [leafTilt, setLeafTilt] = useState(0);
+  const [carryingTulip, setCarryingTulip] = useState<TulipVariant | null>(null);
   const [squash, setSquash] = useState({ sx: 1, sy: 1, rot: 0 });
   const [visible, setVisible] = useState(false);
   const [sparks, setSparks] = useState<Spark[]>([]);
@@ -177,8 +180,27 @@ export function TulipBuddy() {
     eeSpotX: 0,
     eeSpotY: 0,
     eeBackX: 0,
-    eeScurryDir: 1 as 1 | -1,
-    eePuffCooldown: 0,
+    windmillBuild: {
+      phase: 'idea' as
+        | 'idea'
+        | 'seed-prep'
+        | 'to-tulip'
+        | 'pluck'
+        | 'to-site'
+        | 'place'
+        | 'to-admire'
+        | 'celebrate',
+      timer: 0,
+      stagesBuilt: 0,
+      targetTulipId: null as number | null,
+      targetX: 0,
+      harvestedVariants: [] as TulipVariant[],
+      needsSeeds: 0,
+      seedsTossed: false,
+      plucked: false,
+      placed: false,
+      celebrated: false,
+    },
     // Garden refs
     tulipSeq: 1,
     seedSeq: 1,
@@ -566,16 +588,30 @@ export function TulipBuddy() {
       spotRel > 88
         ? Math.max(r.left + 20, s.eeSpotX - BUDDY_W - 28)
         : Math.min(r.right - 20 - BUDDY_W, s.eeSpotX + 28);
-    s.eeScurryDir = s.x < s.eeSpotX ? 1 : -1;
-    s.eePuffCooldown = 0;
+
+    const onCard = s.tulips.filter((t) => t.el === el && !t.fading);
+    s.windmillBuild = {
+      phase: 'idea',
+      timer: 0,
+      stagesBuilt: 0,
+      targetTulipId: null,
+      targetX: s.x,
+      harvestedVariants: [],
+      needsSeeds: Math.max(0, 3 - onCard.length),
+      seedsTossed: false,
+      plucked: false,
+      placed: false,
+      celebrated: false,
+    };
 
     s.unlocked.windmill = true;
     s.mode = 'ee-windmill';
     s.actionTimer = 0;
-    s.actionDuration = 5.2;
+    s.actionDuration = 0;
     s.actionPhase = 0;
     setMode('ee-windmill');
     setWalking(false);
+    setCarryingTulip(null);
     showSpeech('💡 idea!', 950);
   };
 
@@ -1031,6 +1067,7 @@ export function TulipBuddy() {
           setWalking(false);
           setExpression('normal');
           setLeafTilt(0);
+          setCarryingTulip(null);
           setSquash({ sx: 1, sy: 1, rot: 0 });
           setHatchingSprout(null);
           pickBestPerchForViewport();
@@ -1363,90 +1400,241 @@ export function TulipBuddy() {
           const baseY = r.top - BUDDY_H + 5;
           s.eeSpotX = r.left + s.eeSpotRelX;
           s.eeSpotY = r.top + 3;
-          s.actionTimer += dt;
-          const t = s.actionTimer;
+          const wb = s.windmillBuild;
+          wb.timer += dt;
 
-          if (t < 0.75) {
-            // Excited lightbulb hop
-            const p = t / 0.75;
-            const hop = 4 * p * (1 - p) * 34;
+          if (wb.phase === 'idea') {
+            const p = Math.min(1, wb.timer / 0.65);
+            const hop = 4 * p * (1 - p) * 32;
             s.y = baseY - hop;
             setPos({ x: s.x, y: s.y });
             setSquash({ sx: 0.95, sy: 1.06, rot: 0 });
-            if (s.actionPhase === 0 && t > 0.1) {
+            if (s.actionPhase === 0 && wb.timer > 0.08) {
               s.actionPhase = 1;
               emitSparks(s.x + BUDDY_W / 2, baseY + BUDDY_H - 6, 6, ['#FBBF24', '#EA7824']);
             }
-          } else if (t < 3.25) {
-            // Scurry energetically back and forth gathering petals & constructing!
-            const minX = Math.max(r.left + 20, s.eeSpotX - 95);
-            const maxX = Math.min(r.right - 20 - BUDDY_W, s.eeSpotX + 65);
-            s.x += s.eeScurryDir * 145 * dt;
-            if (s.x <= minX) {
-              s.x = minX;
-              s.eeScurryDir = 1;
-            } else if (s.x >= maxX) {
-              s.x = maxX;
-              s.eeScurryDir = -1;
+            if (wb.timer >= 0.65) {
+              wb.timer = 0;
+              if (wb.needsSeeds > 0) {
+                wb.phase = 'seed-prep';
+                showSpeech('need tulips! 🌱', 1000);
+              } else {
+                wb.phase = 'to-tulip';
+              }
             }
-            if (s.eeScurryDir !== s.facing) {
-              s.facing = s.eeScurryDir;
-              setFacing(s.facing);
-            }
-            s.stride += dt * 24;
-            setWalking(true);
-            setStepPhase(Math.sin(s.stride));
-            const bobY = Math.abs(Math.sin(s.stride)) * -3.5;
+          } else if (wb.phase === 'seed-prep') {
             s.y = baseY;
-            setPos({ x: s.x, y: s.y + bobY });
-            setSquash({ sx: 1, sy: 1, rot: Math.sin(s.stride) * 6 });
+            setPos({ x: s.x, y: s.y });
+            if (!wb.seedsTossed && wb.timer >= 0.15) {
+              wb.seedsTossed = true;
+              const relX = s.x - r.left;
+              const tossDir: 1 | -1 = relX < r.width / 2 ? 1 : -1;
+              if (tossDir !== s.facing) {
+                s.facing = tossDir;
+                setFacing(tossDir);
+              }
+              setLeafTilt(18);
+              launchSeeds(
+                s.currentEl,
+                wb.needsSeeds,
+                s.x + BUDDY_W / 2 + tossDir * 10,
+                s.y + BUDDY_H * 0.52,
+                tossDir,
+                true
+              );
+            } else if (wb.timer >= 0.35) {
+              setLeafTilt(0);
+            }
+            if (wb.seedsTossed && (s.seeds.length === 0 || wb.timer >= 1.25)) {
+              wb.phase = 'to-tulip';
+              wb.timer = 0;
+            }
+          } else if (wb.phase === 'to-tulip') {
+            let target =
+              wb.targetTulipId !== null
+                ? s.tulips.find((t) => t.id === wb.targetTulipId && !t.fading) ?? null
+                : null;
 
-            s.eePuffCooldown -= dt;
-            if (s.eePuffCooldown <= 0 && Math.abs(s.x + BUDDY_W / 2 - s.eeSpotX) < 30) {
-              s.eePuffCooldown = 0.42;
-              emitSparks(s.eeSpotX, s.eeSpotY - 12, 4, ['#EA7824', '#2857A4', '#FBBF24']);
+            if (!target) {
+              const candidates = s.tulips.filter((t) => t.el === s.currentEl && !t.fading);
+              if (candidates.length === 0) {
+                // Guarantee a tulip to harvest if none remain on this card
+                const fallbackRel = pickOpenRelX(
+                  s.currentEl,
+                  s.eeSpotRelX + (s.eeSpotRelX > r.width / 2 ? -46 : 46),
+                  16
+                );
+                spawnPlantedTulip(s.currentEl, fallbackRel, pickTulipVariant(true));
+                const refreshed = s.tulips.filter((t) => t.el === s.currentEl && !t.fading);
+                target = refreshed[refreshed.length - 1] ?? null;
+              } else {
+                // Pick the tulip farthest from the windmill build site for a fun harvest run
+                target = candidates.reduce((best, cur) =>
+                  Math.abs(cur.relX - s.eeSpotRelX) > Math.abs(best.relX - s.eeSpotRelX) ? cur : best
+                );
+              }
+
+              if (target) {
+                wb.targetTulipId = target.id;
+                wb.targetX = Math.min(
+                  Math.max(r.left + 16, target.x - BUDDY_W / 2),
+                  Math.max(r.left + 16, r.right - 16 - BUDDY_W)
+                );
+              }
             }
 
-            if (s.actionPhase < 2 && t >= 1.55) {
-              s.actionPhase = 2;
+            if (!target) {
+              wb.phase = 'to-admire';
+              wb.timer = 0;
+            } else {
+              const targetBuddyX = Math.min(
+                Math.max(r.left + 16, target.x - BUDDY_W / 2),
+                Math.max(r.left + 16, r.right - 16 - BUDDY_W)
+              );
+              const dx = targetBuddyX - s.x;
+              if (Math.abs(dx) <= 5) {
+                s.x = targetBuddyX;
+                s.y = baseY;
+                setWalking(false);
+                setPos({ x: s.x, y: s.y });
+                wb.phase = 'pluck';
+                wb.timer = 0;
+                wb.plucked = false;
+              } else {
+                const dir: 1 | -1 = dx > 0 ? 1 : -1;
+                if (dir !== s.facing) {
+                  s.facing = dir;
+                  setFacing(dir);
+                }
+                s.x += dir * Math.min(Math.abs(dx), 148 * dt);
+                s.stride += dt * 24;
+                setWalking(true);
+                setStepPhase(Math.sin(s.stride));
+                s.y = baseY;
+                setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -3.5 });
+                setSquash({ sx: 1, sy: 1, rot: Math.sin(s.stride) * 5.5 });
+              }
+            }
+          } else if (wb.phase === 'pluck') {
+            s.y = baseY;
+            setPos({ x: s.x, y: s.y });
+            const p = Math.min(1, wb.timer / 0.26);
+            setSquash({
+              sx: 1 + 0.15 * Math.sin(p * Math.PI),
+              sy: 1 - 0.22 * Math.sin(p * Math.PI),
+              rot: 10 * Math.sin(p * Math.PI) * s.facing,
+            });
+            setLeafTilt(22 * Math.sin(p * Math.PI));
+
+            if (!wb.plucked && wb.timer >= 0.12) {
+              wb.plucked = true;
+              const plucked = s.tulips.find((t) => t.id === wb.targetTulipId);
+              const variant: TulipVariant = plucked ? plucked.variant : 'brand';
+              if (plucked) {
+                emitSparks(plucked.x, plucked.y - 8, 6, ['#22C55E', '#EA7824', '#FBBF24']);
+                s.tulips = s.tulips.filter((t) => t.id !== plucked.id);
+                setTulips([...s.tulips]);
+              }
+              wb.harvestedVariants.push(variant);
+              setCarryingTulip(variant);
+            }
+
+            if (wb.timer >= 0.26) {
+              wb.phase = 'to-site';
+              wb.timer = 0;
+              setSquash({ sx: 1, sy: 1, rot: 0 });
+              setLeafTilt(-10);
+            }
+          } else if (wb.phase === 'to-site') {
+            const siteBuddyX = Math.min(
+              Math.max(r.left + 16, s.eeSpotX - BUDDY_W / 2),
+              Math.max(r.left + 16, r.right - 16 - BUDDY_W)
+            );
+            const dx = siteBuddyX - s.x;
+            if (Math.abs(dx) <= 8) {
+              setWalking(false);
+              s.y = baseY;
+              setPos({ x: s.x, y: s.y });
+              wb.phase = 'place';
+              wb.timer = 0;
+              wb.placed = false;
+            } else {
+              const dir: 1 | -1 = dx > 0 ? 1 : -1;
+              if (dir !== s.facing) {
+                s.facing = dir;
+                setFacing(dir);
+              }
+              s.x += dir * Math.min(Math.abs(dx), 148 * dt);
+              s.stride += dt * 24;
+              setWalking(true);
+              setStepPhase(Math.sin(s.stride));
+              s.y = baseY;
+              setPos({ x: s.x, y: s.y + Math.abs(Math.sin(s.stride)) * -3.5 });
+              setSquash({ sx: 1, sy: 1, rot: Math.sin(s.stride) * 5.5 });
+              setLeafTilt(-10);
+            }
+          } else if (wb.phase === 'place') {
+            s.y = baseY;
+            setPos({ x: s.x, y: s.y });
+            const p = Math.min(1, wb.timer / 0.34);
+            setLeafTilt(-26 * (1 - p));
+            setSquash({ sx: 0.96, sy: 1 + 0.08 * Math.sin(p * Math.PI), rot: -6 * (1 - p) * s.facing });
+
+            if (!wb.placed && wb.timer >= 0.12) {
+              wb.placed = true;
+              setCarryingTulip(null);
+              wb.stagesBuilt += 1;
+              const sailColors = [0, 1, 2, 3].map((idx) => {
+                const v = wb.harvestedVariants[idx % wb.harvestedVariants.length] ?? 'brand';
+                return getVariantSailColor(v, idx);
+              });
+              const stage = Math.min(3, wb.stagesBuilt) as 1 | 2 | 3;
               s.windmill = {
                 el: s.currentEl,
                 relX: s.eeSpotRelX,
                 x: s.eeSpotX,
                 y: s.eeSpotY,
-                stage: 1,
+                stage,
                 visible: true,
+                sailColors,
               };
               setWindmill(s.windmill);
-              showSpeech('building! 🛠️', 1000);
-              emitSparks(s.eeSpotX, s.eeSpotY - 16, 8);
-            } else if (s.actionPhase < 3 && t >= 2.35) {
-              s.actionPhase = 3;
-              if (s.windmill) {
-                s.windmill = { ...s.windmill, stage: 2 };
-                setWindmill(s.windmill);
+              if (stage === 1) {
+                showSpeech('building! 🛠️', 950);
+                emitSparks(s.eeSpotX, s.eeSpotY - 16, 8, ['#EA7824', '#2857A4']);
+              } else if (stage === 2) {
+                showSpeech('almost... ✨', 950);
+                emitSparks(s.eeSpotX, s.eeSpotY - 38, 8, ['#2857A4', '#FBBF24']);
+              } else {
+                emitSparks(s.eeSpotX, s.eeSpotY - 44, 14, ['#EA7824', '#2857A4', '#FBBF24']);
               }
-              emitSparks(s.eeSpotX, s.eeSpotY - 38, 8, ['#2857A4', '#FBBF24']);
-            } else if (s.actionPhase < 4 && t >= 3.15) {
-              s.actionPhase = 4;
-              if (s.windmill) {
-                s.windmill = { ...s.windmill, stage: 3 };
-                setWindmill(s.windmill);
-              }
-              emitSparks(s.eeSpotX, s.eeSpotY - 44, 14, ['#EA7824', '#2857A4', '#FBBF24']);
             }
-          } else if (t < 3.9) {
-            // Walk neatly beside the windmill & admire it
+
+            if (wb.timer >= 0.34) {
+              setLeafTilt(0);
+              setSquash({ sx: 1, sy: 1, rot: 0 });
+              wb.timer = 0;
+              if (wb.stagesBuilt < 3) {
+                wb.targetTulipId = null;
+                wb.phase = 'to-tulip';
+              } else {
+                wb.phase = 'to-admire';
+              }
+            }
+          } else if (wb.phase === 'to-admire') {
             const dx = s.eeBackX - s.x;
             if (Math.abs(dx) > 3) {
               const dir: 1 | -1 = dx > 0 ? 1 : -1;
-              s.facing = dir;
-              setFacing(dir);
+              if (dir !== s.facing) {
+                s.facing = dir;
+                setFacing(dir);
+              }
               s.x += dir * Math.min(Math.abs(dx), 120 * dt);
               s.stride += dt * 18;
               setWalking(true);
               setStepPhase(Math.sin(s.stride));
               setPos({ x: s.x, y: baseY + Math.abs(Math.sin(s.stride)) * -2.5 });
+              setSquash({ sx: 1, sy: 1, rot: Math.sin(s.stride) * 4 });
             } else {
               setWalking(false);
               const faceWindmill: 1 | -1 = s.eeSpotX >= s.x ? 1 : -1;
@@ -1454,33 +1642,39 @@ export function TulipBuddy() {
                 s.facing = faceWindmill;
                 setFacing(faceWindmill);
               }
-              setPos({ x: s.x, y: baseY });
+              s.y = baseY;
+              setPos({ x: s.x, y: s.y });
+              wb.phase = 'celebrate';
+              wb.timer = 0;
+              wb.celebrated = false;
             }
           } else {
             // Proud celebratory hop beside the spinning windmill!
-            if (s.actionPhase < 5) {
-              s.actionPhase = 5;
+            if (!wb.celebrated) {
+              wb.celebrated = true;
               setWalking(false);
               setExpression('happy');
               showSpeech('ta-da!! 🌬️🌷', 1600);
               emitSparks(s.x + BUDDY_W / 2, baseY + BUDDY_H - 6, 8);
             }
-            const p = Math.min(1, (t - 3.9) / 0.65);
+            const p = Math.min(1, wb.timer / 0.65);
             const hop = 4 * p * (1 - p) * 28;
             s.y = baseY - hop;
             setPos({ x: s.x, y: s.y });
             setSquash({ sx: 1, sy: 1 + Math.sin(p * Math.PI) * 0.08, rot: 0 });
-          }
 
-          if (t >= s.actionDuration) {
-            s.mode = 'perched';
-            s.y = baseY;
-            s.walkPause = 1.1;
-            setMode('perched');
-            setWalking(false);
-            setExpression('normal');
-            setSquash({ sx: 1, sy: 1, rot: 0 });
-            recheckViewportIfNeeded();
+            if (wb.timer >= 1.15) {
+              s.mode = 'perched';
+              s.y = baseY;
+              s.walkPause = 1.1;
+              setMode('perched');
+              setWalking(false);
+              setExpression('normal');
+              setLeafTilt(0);
+              setCarryingTulip(null);
+              setSquash({ sx: 1, sy: 1, rot: 0 });
+              recheckViewportIfNeeded();
+            }
           }
         } else if (s.mode === 'perched' && s.currentEl) {
           // Keep glued to card top in case layout shifts
@@ -1962,6 +2156,7 @@ export function TulipBuddy() {
 
           {/* Animated Leaf (pivots around base (0, -11) for tossing & hand-planting!) */}
           <g transform={`rotate(${leafTilt} 0 -11)`}>
+            {carryingTulip && <CarriedTulipSvg variant={carryingTulip} />}
             <path
               d="M0 -11 Q16 -11 18 -25 Q6 -24 0 -11 Z"
               className="fill-white dark:fill-[#242B35] stroke-[#2857A4] dark:stroke-[#4E89E8]"

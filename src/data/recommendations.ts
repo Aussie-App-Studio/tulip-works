@@ -18,6 +18,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     description:
       'Use full uBlock Origin on Firefox or Brave for maximum control, or grab uBlock Origin Lite on Chrome (the lightweight Manifest V3 version after Google nerfed MV2 extensions).',
     note: 'Full engine on Firefox & Brave · Manifest V3 "Lite" edition on Chrome',
+    icon: './recommended-icons/ublock-origin.png',
     emoji: '🛡️',
     accentGradient: 'from-rose-600 to-red-700',
     platforms: ['Firefox', 'Brave', 'Chrome (Lite)', 'Open Source'],
@@ -41,6 +42,37 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     ],
   },
   {
+    id: 'brave-browser',
+    name: 'Brave Browser',
+    creator: 'Brave Software',
+    kindLabel: 'Desktop & Mobile Browser',
+    tagline: 'Fast, privacy-first web browser with built-in ad & tracker blocking.',
+    description:
+      'Blocks creepy trackers, popups, and YouTube ads out of the box on Windows, Mac, Linux, Android, and iPhone/iPad — without breaking your favourite Chrome extensions.',
+    icon: './recommended-icons/brave.png',
+    emoji: '🦁',
+    accentGradient: 'from-orange-500 to-red-600',
+    platforms: ['Win / Mac / Linux', 'Android', 'Apple iOS'],
+    categories: ['apps-web', 'privacy'],
+    links: [
+      {
+        label: 'Desktop Download',
+        url: 'https://brave.com/download/',
+        variant: 'primary',
+      },
+      {
+        label: 'Google Play',
+        url: 'https://play.google.com/store/apps/details?id=com.brave.browser',
+        variant: 'secondary',
+      },
+      {
+        label: 'App Store',
+        url: 'https://apps.apple.com/app/brave-browser-private-web/id1052879175',
+        variant: 'github',
+      },
+    ],
+  },
+  {
     id: 'updated-works',
     name: 'Updated Works',
     creator: 'updatedworks.com',
@@ -48,6 +80,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Puritan, Reformed & classic Christian works in clean modern English.',
     description:
       'A wonderful free online library providing sentence-by-sentence modern English editions of Richard Baxter, John Bunyan, Thomas Watson, Augustine, and other historic Christian classics.',
+    icon: './recommended-icons/updated-works.png',
     emoji: '📚',
     accentGradient: 'from-amber-600 to-orange-600',
     platforms: ['Web', 'Free Reading'],
@@ -68,6 +101,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Historic creeds, confessions, and catechisms right in your pocket.',
     description:
       'A super clean mobile app packed with Reformed confessions (Westminster, Belgic, Canons of Dort, 1689), catechisms with ESV/KJV proof texts, built-in quizzes, and study tools.',
+    icon: './recommended-icons/reformed-companion.png',
     emoji: '✝️',
     accentGradient: 'from-blue-700 to-indigo-700',
     platforms: ['Android', 'Apple iOS'],
@@ -98,6 +132,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'All-in-one church management suite for services, rosters & people.',
     description:
       'A modular toolkit for churches to plan Sunday services, schedule volunteers and musicians, run kids check-ins, manage directories, and connect the congregation via Church Center.',
+    icon: './recommended-icons/planning-center.png',
     emoji: '⛪',
     accentGradient: 'from-emerald-600 to-teal-700',
     platforms: ['Web', 'iOS & Android'],
@@ -118,6 +153,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Free, open-source church presentation software (ProPresenter alternative).',
     description:
       'A slick, volunteer-friendly replacement for PowerPoint, ProPresenter, or EasyWorship — complete with a companion mobile app to control slides right from the front.',
+    icon: './recommended-icons/freeshow.png',
     emoji: '📽️',
     accentGradient: 'from-indigo-600 to-blue-700',
     platforms: ['Win / Mac / Linux', 'Mobile Remote', 'Open Source'],
@@ -138,6 +174,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: '52 foundational Christian Q&As with Adult and Kids modes.',
     description:
       'Complements Reformed Companion nicely — includes short devotions, Scripture readings, and a Kids mode with simpler wording and a children’s choir singing every question and answer.',
+    icon: './recommended-icons/new-city-catechism.png',
     emoji: '🎶',
     accentGradient: 'from-sky-600 to-cyan-700',
     platforms: ['Android', 'Apple iOS', 'Web'],
@@ -168,6 +205,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Every chapter of Scripture sung word-for-word in 20+ music styles.',
     description:
       'A fun, unique way to soak in the Bible on a commute or with kids — the literal words of Scripture set to music across more than 20 genres.',
+    icon: './recommended-icons/the-singing-bible.png',
     emoji: '🎵',
     accentGradient: 'from-fuchsia-600 to-purple-700',
     platforms: ['Android', 'Apple iOS', 'Web'],
@@ -198,6 +236,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Turn any workflow into an illustrated step-by-step guide in seconds.',
     description:
       'Records your clicks and screenshots automatically, then writes clean, editable how-to guides — a lifesaver for training volunteers on slides, audio uploads, or church software.',
+    icon: './recommended-icons/scribe.png',
     emoji: '📝',
     accentGradient: 'from-violet-600 to-indigo-700',
     platforms: ['Web', 'Browser Extension', 'Free Tier'],
@@ -219,6 +258,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     description:
       'Use free, open-source Calibre on desktop to manage, edit covers, and convert EPUB/PDF/MOBI files — then upload them to Google Play Books to read on any device or listen with AI read-aloud.',
     note: 'Make/prep the ebook in Calibre → upload to Google Play Books',
+    icon: './recommended-icons/calibre.png',
     emoji: '📖',
     accentGradient: 'from-amber-600 to-yellow-600',
     platforms: ['Win / Mac / Linux', 'Web', 'Android / iOS'],
@@ -244,6 +284,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Create private, custom interactive maps for small groups & households.',
     description:
       'Different from regular Google Maps — plot church households, small group locations, and contact info on a private layered map to spot community gaps and orient newcomers.',
+    icon: './recommended-icons/google-my-maps.png',
     emoji: '🗺️',
     accentGradient: 'from-emerald-600 to-green-700',
     platforms: ['Web', 'Free'],
@@ -265,6 +306,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     description:
       'Pair Google’s default Messages app on your Android phone with your Mac or Windows browser so you can text contacts and groups from your keyboard without breaking focus.',
     note: 'Android only · Requires Google Messages as your default SMS app',
+    icon: './recommended-icons/google-messages.png',
     emoji: '💬',
     accentGradient: 'from-blue-600 to-sky-600',
     platforms: ['Web', 'Android'],
@@ -290,6 +332,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Organize meals for sick, elderly, or new-parent families effortlessly.',
     description:
       'Set dates, dietary needs, and delivery preferences once, send out one link, and let church or friends claim a day without messy group-chat coordination.',
+    icon: './recommended-icons/mealtrain.png',
     emoji: '🍲',
     accentGradient: 'from-orange-500 to-rose-600',
     platforms: ['Web', 'Free'],
@@ -330,6 +373,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Free, zero-clutter high-res QR code generator.',
     description:
       'Great for adding scannable links onto printed church forms, pew cards, or flyers — send people straight to digital sign-up forms with no paywall traps.',
+    icon: './recommended-icons/qrcode-monkey.png',
     emoji: '📱',
     accentGradient: 'from-slate-600 to-slate-800',
     platforms: ['Web', 'Free'],
@@ -350,6 +394,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Clean, modern child-safety training & screening for Australian churches.',
     description:
       'Practical, easy-to-use online safety training and volunteer screening built specifically for churches — much lighter and friendlier to manage for small-to-medium teams.',
+    icon: './recommended-icons/safe-ministry-check.ico',
     emoji: '🦺',
     accentGradient: 'from-sky-700 to-blue-800',
     platforms: ['Web', 'Australia'],
@@ -401,6 +446,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Stops websites from sending your visit data to Google Analytics.',
     description:
       'An official add-on by Google that instructs Google Analytics scripts (ga.js, analytics.js, gtag.js) not to collect or report your browsing activity across sites.',
+    icon: './recommended-icons/google-analytics-opt-out.png',
     emoji: '🔒',
     accentGradient: 'from-sky-600 to-blue-700',
     platforms: ['Chrome Store', 'Chromium'],
@@ -421,6 +467,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Persistently opts you out of Google’s interest-based ad cookies.',
     description:
       'Official Google extension that keeps your DoubleClick personalized advertising opt-out active — and automatically preserves it even after you clear your browser cookies.',
+    icon: './recommended-icons/iba-opt-out.png',
     emoji: '🚫',
     accentGradient: 'from-indigo-600 to-violet-700',
     platforms: ['Chrome Store', 'Chromium'],
@@ -441,6 +488,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Copy a direct link that scrolls straight to & highlights any quote.',
     description:
       'Highlight any paragraph or sentence on a webpage, right-click, and copy a special URL that automatically scrolls recipients directly to that exact highlighted text.',
+    icon: './recommended-icons/link-to-text-fragment.png',
     emoji: '🔗',
     accentGradient: 'from-cyan-600 to-blue-600',
     platforms: ['Chrome Store', 'Chromium'],
@@ -461,6 +509,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Right-click any pesky .webp image and save it straight as a PNG.',
     description:
       'Adds a "Save Image As PNG" option to your right-click menu and converts WebP or AVIF images locally on the fly before saving — zero background memory used.',
+    icon: './recommended-icons/save-image-as-png.png',
     emoji: '🖼️',
     accentGradient: 'from-emerald-600 to-green-700',
     platforms: ['Chrome Store', 'Chromium'],
@@ -481,6 +530,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Automatically skip sponsorships, intros, outros & nagging prompts.',
     description:
       'A brilliant crowdsourced extension that seamlessly jumps past in-video sponsor reads, merch plugs, and "don’t forget to subscribe" segments on YouTube.',
+    icon: './recommended-icons/sponsorblock.png',
     emoji: '⏭️',
     accentGradient: 'from-red-600 to-orange-600',
     platforms: ['Chrome Store', 'Open Source'],
@@ -506,6 +556,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Speed up, slow down, or rewind any HTML5 video with keyboard shortcuts.',
     description:
       'Works on YouTube, lectures, embedded players, and nearly any video on the web. Tweak playback speed in 0.1x increments or jump forward/back without hunting for player controls.',
+    icon: './recommended-icons/video-speed-controller.png',
     emoji: '⏩',
     accentGradient: 'from-violet-600 to-purple-700',
     platforms: ['Chrome Store', 'Open Source'],
@@ -532,6 +583,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     tagline: 'Re-implements the Google Images "View Image" button.',
     description:
       'Brings back the classic "View Image" and "Search by Image" buttons on Google Image Search so you can open full-resolution images in one click.',
+    icon: './recommended-icons/view-image.png',
     emoji: '🔍',
     accentGradient: 'from-amber-500 to-orange-600',
     platforms: ['Chrome Store', 'Firefox', 'Open Source'],

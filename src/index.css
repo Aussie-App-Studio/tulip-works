@@ -161,7 +161,7 @@
 }
 
 .animate-windmill-spin {
-  transform-origin: center;
+  transform-origin: 0px 0px;
   animation: windmillSpin 7s linear infinite;
 }
 
