@@ -43,7 +43,7 @@ export interface WindmillState {
   relX: number;
   x: number;
   y: number;
-  stage: 1 | 2 | 3;
+  stage: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   visible: boolean;
   sailColors?: string[];
 }
@@ -461,29 +461,47 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
           className="overflow-visible drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]"
           fill="none"
         >
-          {/* Stage 1+: Tapered geometric tower */}
-          <path
-            d="M-15 0 L-10 -44 L10 -44 L15 0 Z"
-            className="fill-white dark:fill-[#242B35] stroke-[#2857A4] dark:stroke-[#4E89E8]"
-            strokeWidth="3.2"
-            strokeLinejoin="round"
-          />
-          {/* Little arched door */}
-          <path
-            d="M-4.5 0 L-4.5 -10 A4.5 4.5 0 0 1 4.5 -10 L4.5 0 Z"
-            fill="#EA7824"
-          />
-          {/* Little round window */}
-          <circle
-            cx="0"
-            cy="-27"
-            r="4"
-            className="fill-sky-100 dark:fill-slate-700 stroke-[#2857A4] dark:stroke-[#4E89E8]"
-            strokeWidth="2.2"
-          />
+          {/* Stage 1: Lower foundation half of the tower */}
+          {windmill.stage === 1 && (
+            <>
+              <path
+                d="M-15 0 L-12.5 -22 L12.5 -22 L15 0 Z"
+                className="fill-white dark:fill-[#242B35] stroke-[#2857A4] dark:stroke-[#4E89E8]"
+                strokeWidth="3.2"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M-4.5 0 L-4.5 -10 A4.5 4.5 0 0 1 4.5 -10 L4.5 0 Z"
+                fill="#EA7824"
+              />
+            </>
+          )}
 
-          {/* Stage 2+: Domed cap roof */}
+          {/* Stage 2+: Full tapered geometric tower + window */}
           {windmill.stage >= 2 && (
+            <>
+              <path
+                d="M-15 0 L-10 -44 L10 -44 L15 0 Z"
+                className="fill-white dark:fill-[#242B35] stroke-[#2857A4] dark:stroke-[#4E89E8]"
+                strokeWidth="3.2"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M-4.5 0 L-4.5 -10 A4.5 4.5 0 0 1 4.5 -10 L4.5 0 Z"
+                fill="#EA7824"
+              />
+              <circle
+                cx="0"
+                cy="-27"
+                r="4"
+                className="fill-sky-100 dark:fill-slate-700 stroke-[#2857A4] dark:stroke-[#4E89E8]"
+                strokeWidth="2.2"
+              />
+            </>
+          )}
+
+          {/* Stage 3+: Domed cap roof */}
+          {windmill.stage >= 3 && (
             <path
               d="M-11.5 -44 Q0 -62 11.5 -44 Z"
               className="fill-[#2857A4] dark:fill-[#4E89E8] stroke-[#2857A4] dark:stroke-[#4E89E8]"
@@ -492,8 +510,38 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
             />
           )}
 
-          {/* Stage 3: Spinning 4-blade Tulip-Petal Sails */}
-          {windmill.stage >= 3 && (
+          {/* Stages 4..6: Static sails added one by one as tulips are delivered */}
+          {windmill.stage >= 4 && windmill.stage < 7 && (
+            <g transform="translate(0, -44)">
+              {[0, 90, 180].slice(0, windmill.stage - 3).map((deg, idx) => {
+                const defaultColor = idx % 2 === 0 ? '#EA7824' : '#2857A4';
+                const sailColor = windmill.sailColors?.[idx] ?? defaultColor;
+                return (
+                  <g key={deg} transform={`rotate(${deg})`}>
+                    <line
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="-30"
+                      className="stroke-[#2857A4] dark:stroke-[#4E89E8]"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M0 -8 Q9 -15 8 -26 Q2 -28 0 -20 Z"
+                      fill={sailColor}
+                      stroke={sailColor === '#2857A4' ? '#4E89E8' : sailColor}
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                );
+              })}
+            </g>
+          )}
+
+          {/* Stage 7: Complete 4-blade Tulip-Petal Sails spinning smoothly */}
+          {windmill.stage === 7 && (
             <g transform="translate(0, -44)">
               <g>
                 <animateTransform
@@ -532,8 +580,8 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
             </g>
           )}
 
-          {/* Stage 2+: Center axle hub */}
-          {windmill.stage >= 2 && (
+          {/* Stage 3+: Center axle hub */}
+          {windmill.stage >= 3 && (
             <circle
               cx="0"
               cy="-44"
@@ -552,7 +600,7 @@ export function TulipWindmillLandmark({ windmill }: { windmill: WindmillState })
 export function CarriedTulipSvg({ variant }: { variant: TulipVariant }) {
   const style = VARIANT_STYLES[variant];
   return (
-    <g transform="translate(15, -24) rotate(24) scale(0.65)">
+    <g transform="translate(18, -22) rotate(18) scale(0.92)">
       <line
         x1="0"
         y1="0"
@@ -561,6 +609,12 @@ export function CarriedTulipSvg({ variant }: { variant: TulipVariant }) {
         className="stroke-[#2857A4] dark:stroke-[#4E89E8]"
         strokeWidth="2.4"
         strokeLinecap="round"
+      />
+      <path
+        d="M0 -2 Q9 -2 10 -10 Q3.5 -9 0 -2 Z"
+        className="fill-white dark:fill-[#242B35] stroke-[#2857A4] dark:stroke-[#4E89E8]"
+        strokeWidth="1.9"
+        strokeLinejoin="round"
       />
       <path
         d="M-8 -27 L-8 -19 C-8 -13 -4 -11 0 -11 C4 -11 8 -13 8 -19 L8 -27 Q0 -24 -8 -27 Z"

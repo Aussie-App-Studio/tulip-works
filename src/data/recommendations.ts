@@ -22,7 +22,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🛡️',
     accentGradient: 'from-rose-600 to-red-700',
     platforms: ['Firefox', 'Brave', 'Chrome (Lite)', 'Open Source'],
-    categories: ['extensions', 'privacy'],
+    categories: ['extensions'],
     links: [
       {
         label: 'Firefox (Full)',
@@ -53,7 +53,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🦁',
     accentGradient: 'from-orange-500 to-red-600',
     platforms: ['Win / Mac / Linux', 'Android', 'Apple iOS'],
-    categories: ['apps-web', 'privacy'],
+    categories: ['pc-desktop', 'mobile-web'],
     links: [
       {
         label: 'Desktop Download',
@@ -73,6 +73,63 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     ],
   },
   {
+    id: 'microsoft-powertoys',
+    name: 'Microsoft PowerToys',
+    creator: 'Microsoft (Open Source)',
+    kindLabel: 'Windows App',
+    tagline: 'Official Microsoft Swiss-army knife of productivity utilities for Windows.',
+    description:
+      'Packed with super handy free tools — FancyZones window snapping, Color Picker, Text Extractor (copy text from any image), Always on Top, Image Resizer, Awake, and quick app launcher.',
+    icon: './recommended-icons/powertoys.png',
+    emoji: '🧰',
+    accentGradient: 'from-sky-500 to-blue-700',
+    platforms: ['Windows 10 / 11', 'Microsoft Store', 'Open Source'],
+    categories: ['pc-desktop'],
+    links: [
+      {
+        label: 'Microsoft Store',
+        url: 'https://apps.microsoft.com/detail/XP89DCGQ3K6VLD',
+        variant: 'primary',
+      },
+      {
+        label: 'Microsoft Docs',
+        url: 'https://learn.microsoft.com/windows/powertoys/',
+        variant: 'secondary',
+      },
+      {
+        label: 'GitHub',
+        url: 'https://github.com/microsoft/PowerToys',
+        variant: 'github',
+      },
+    ],
+  },
+  {
+    id: 'wintoys',
+    name: 'Wintoys',
+    creator: 'Bogdan Pătrăucean',
+    kindLabel: 'Windows App',
+    tagline: 'Clean, optimize, debloat & tweak Windows 10/11 safely in one spot.',
+    description:
+      'An all-in-one Windows toolbox for toggling privacy & ad settings, clearing junk, uninstalling stubborn built-in apps, managing startup items and services, and running native repair tools — without digging through the registry.',
+    icon: './recommended-icons/wintoys.png',
+    emoji: '🛠️',
+    accentGradient: 'from-blue-600 to-indigo-700',
+    platforms: ['Windows 10 / 11', 'Microsoft Store', 'Free'],
+    categories: ['pc-desktop'],
+    links: [
+      {
+        label: 'Microsoft Store',
+        url: 'https://apps.microsoft.com/detail/9P8LTPGCBZXD',
+        variant: 'primary',
+      },
+      {
+        label: 'Official Page',
+        url: 'https://bogdan-patraucean.github.io/about/wintoys/',
+        variant: 'secondary',
+      },
+    ],
+  },
+  {
     id: 'updated-works',
     name: 'Updated Works',
     creator: 'updatedworks.com',
@@ -84,7 +141,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '📚',
     accentGradient: 'from-amber-600 to-orange-600',
     platforms: ['Web', 'Free Reading'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Visit updatedworks.com',
@@ -105,7 +162,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '✝️',
     accentGradient: 'from-blue-700 to-indigo-700',
     platforms: ['Android', 'Apple iOS'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Google Play',
@@ -136,7 +193,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '⛪',
     accentGradient: 'from-emerald-600 to-teal-700',
     platforms: ['Web', 'iOS & Android'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Visit planningcenter.com',
@@ -157,7 +214,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '📽️',
     accentGradient: 'from-indigo-600 to-blue-700',
     platforms: ['Win / Mac / Linux', 'Mobile Remote', 'Open Source'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'pc-desktop'],
     links: [
       {
         label: 'Visit freeshow.app',
@@ -178,7 +235,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🎶',
     accentGradient: 'from-sky-600 to-cyan-700',
     platforms: ['Android', 'Apple iOS', 'Web'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Google Play',
@@ -209,7 +266,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🎵',
     accentGradient: 'from-fuchsia-600 to-purple-700',
     platforms: ['Android', 'Apple iOS', 'Web'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Google Play',
@@ -240,7 +297,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '📝',
     accentGradient: 'from-violet-600 to-indigo-700',
     platforms: ['Web', 'Browser Extension', 'Free Tier'],
-    categories: ['apps-web', 'extensions'],
+    categories: ['extensions', 'mobile-web'],
     links: [
       {
         label: 'Visit scribehow.com',
@@ -262,7 +319,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '📖',
     accentGradient: 'from-amber-600 to-yellow-600',
     platforms: ['Win / Mac / Linux', 'Web', 'Android / iOS'],
-    categories: ['apps-web'],
+    categories: ['pc-desktop', 'mobile-web'],
     links: [
       {
         label: 'Calibre (Desktop)',
@@ -288,7 +345,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🗺️',
     accentGradient: 'from-emerald-600 to-green-700',
     platforms: ['Web', 'Free'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Open Google My Maps',
@@ -310,7 +367,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '💬',
     accentGradient: 'from-blue-600 to-sky-600',
     platforms: ['Web', 'Android'],
-    categories: ['apps-web'],
+    categories: ['mobile-web'],
     links: [
       {
         label: 'Messages for Web',
@@ -336,7 +393,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🍲',
     accentGradient: 'from-orange-500 to-rose-600',
     platforms: ['Web', 'Free'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Visit mealtrain.com',
@@ -356,7 +413,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '📋',
     accentGradient: 'from-teal-600 to-cyan-700',
     platforms: ['Web', 'Free'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Visit volunteersignup.org',
@@ -377,7 +434,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '📱',
     accentGradient: 'from-slate-600 to-slate-800',
     platforms: ['Web', 'Free'],
-    categories: ['apps-web'],
+    categories: ['mobile-web'],
     links: [
       {
         label: 'Visit qrcode-monkey.com',
@@ -398,7 +455,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🦺',
     accentGradient: 'from-sky-700 to-blue-800',
     platforms: ['Web', 'Australia'],
-    categories: ['apps-web', 'church-reformed'],
+    categories: ['church-reformed', 'mobile-web'],
     links: [
       {
         label: 'Visit safeministrycheck.com.au',
@@ -450,7 +507,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🔒',
     accentGradient: 'from-sky-600 to-blue-700',
     platforms: ['Chrome Store', 'Chromium'],
-    categories: ['extensions', 'privacy'],
+    categories: ['extensions'],
     links: [
       {
         label: 'Chrome Web Store',
@@ -471,7 +528,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     emoji: '🚫',
     accentGradient: 'from-indigo-600 to-violet-700',
     platforms: ['Chrome Store', 'Chromium'],
-    categories: ['extensions', 'privacy'],
+    categories: ['extensions'],
     links: [
       {
         label: 'Chrome Web Store',

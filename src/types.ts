@@ -104,11 +104,11 @@ export interface GitHubReleaseInfo {
 }
 
 export type RecommendationCategory =
-  | 'all'
+  | 'church-reformed'
+  | 'pc-desktop'
   | 'extensions'
-  | 'apps-web'
-  | 'privacy'
-  | 'church-reformed';
+  | 'mobile-web'
+  | 'all';
 
 export interface RecommendationLink {
   label: string;

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Award, Compass, ExternalLink, Github, Info, Search, X } from 'lucide-react';
+import { Award, ChevronDown, Compass, ExternalLink, Github, Info, Search, X } from 'lucide-react';
 import { RECOMMENDED_ITEMS } from '../data/recommendations';
 import type { RecommendationCategory, RecommendationLink } from '../types';
 
@@ -12,11 +12,11 @@ const NONPROFIT_PERK_LINKS = [
 ];
 
 const CATEGORY_TABS: { id: RecommendationCategory; label: string; emoji: string }[] = [
-  { id: 'all', label: 'All Picks', emoji: '🌟' },
-  { id: 'extensions', label: 'Browser Extensions', emoji: '🧩' },
-  { id: 'apps-web', label: 'Apps & Web Tools', emoji: '📱' },
-  { id: 'privacy', label: 'Privacy & Ad-Block', emoji: '🛡️' },
   { id: 'church-reformed', label: 'Bible & Church', emoji: '⛪' },
+  { id: 'pc-desktop', label: 'PC & Desktop', emoji: '💻' },
+  { id: 'extensions', label: 'Browser Extensions', emoji: '🧩' },
+  { id: 'mobile-web', label: 'Mobile & Web', emoji: '📱' },
+  { id: 'all', label: 'All Picks', emoji: '🌟' },
 ];
 
 function linkClassName(variant: RecommendationLink['variant'] = 'primary') {
@@ -30,16 +30,29 @@ function linkClassName(variant: RecommendationLink['variant'] = 'primary') {
 }
 
 export function RecommendedSection() {
-  const [activeCategory, setActiveCategory] = useState<RecommendationCategory>('all');
+  const [activeCategory, setActiveCategory] = useState<RecommendationCategory>('church-reformed');
   const [query, setQuery] = useState('');
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const counts = useMemo(() => {
     const map: Record<RecommendationCategory, number> = {
-      all: RECOMMENDED_ITEMS.length,
-      extensions: 0,
-      'apps-web': 0,
-      privacy: 0,
       'church-reformed': 0,
+      'pc-desktop': 0,
+      extensions: 0,
+      'mobile-web': 0,
+      all: RECOMMENDED_ITEMS.length,
     };
     for (const item of RECOMMENDED_ITEMS) {
       for (const cat of item.categories) {
@@ -49,20 +62,21 @@ export function RecommendedSection() {
     return map;
   }, []);
 
+  const isSearching = query.trim().length > 0;
+
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
     return RECOMMENDED_ITEMS.filter((item) => {
-      const matchesCat =
-        activeCategory === 'all' || item.categories.includes(activeCategory);
-      if (!matchesCat) return false;
-      if (!q) return true;
-      return (
-        item.name.toLowerCase().includes(q) ||
-        item.creator.toLowerCase().includes(q) ||
-        item.tagline.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.platforms.some((p) => p.toLowerCase().includes(q))
-      );
+      if (q) {
+        return (
+          item.name.toLowerCase().includes(q) ||
+          item.creator.toLowerCase().includes(q) ||
+          item.tagline.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q) ||
+          item.platforms.some((p) => p.toLowerCase().includes(q))
+        );
+      }
+      return activeCategory === 'all' || item.categories.includes(activeCategory);
     });
   }, [activeCategory, query]);
 
@@ -84,7 +98,7 @@ export function RecommendedSection() {
             </h2>
             <p className="text-slate-600 dark:text-slate-300 max-w-2xl">
               Cool, genuinely useful apps, sites, and browser extensions made by other people that
-              I use myself and think are worth having.
+              I use myself. Click any card to reveal platforms and links.
             </p>
           </div>
 
@@ -95,7 +109,7 @@ export function RecommendedSection() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search picks, Firefox, church..."
+              placeholder="Search picks, Windows, church..."
               aria-label="Search recommended apps and extensions"
               className="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-white dark:bg-[#212734] border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#2857A4] dark:focus:border-[#EA7824] shadow-xs"
             />
@@ -123,14 +137,17 @@ export function RecommendedSection() {
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex flex-wrap gap-2 mb-9">
+        <div className="flex flex-wrap items-center gap-2 mb-9">
           {CATEGORY_TABS.map((tab) => {
-            const isActive = activeCategory === tab.id;
+            const isActive = !isSearching && activeCategory === tab.id;
             return (
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveCategory(tab.id)}
+                onClick={() => {
+                  setQuery('');
+                  setActiveCategory(tab.id);
+                }}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all cursor-pointer border ${
                   isActive
                     ? 'bg-[#2857A4] dark:bg-[#EA7824] text-white border-transparent shadow-md shadow-blue-900/15 dark:shadow-orange-900/25'
@@ -151,6 +168,12 @@ export function RecommendedSection() {
               </button>
             );
           })}
+
+          {isSearching && (
+            <span className="text-xs font-semibold text-[#2857A4] dark:text-[#6AA2FF] bg-blue-50 dark:bg-blue-500/15 px-3 py-1.5 rounded-full">
+              Showing matches across all categories
+            </span>
+          )}
         </div>
 
         {/* Grid */}
@@ -167,118 +190,155 @@ export function RecommendedSection() {
               type="button"
               onClick={() => {
                 setQuery('');
-                setActiveCategory('all');
+                setActiveCategory('church-reformed');
               }}
               className="px-4 py-2 rounded-full bg-[#2857A4] text-white text-sm font-bold cursor-pointer"
             >
-              Show all picks
+              Clear search
             </button>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems.map((item) => (
-              <article
-                key={item.id}
-                data-tulip-perch="card"
-                className="tulip-card flex flex-col justify-between rounded-3xl bg-white dark:bg-[#212734] border-2 border-slate-200/85 dark:border-slate-700/75 hover:border-[#2857A4] dark:hover:border-[#EA7824] p-5 sm:p-6 shadow-sm hover:shadow-xl hover:shadow-slate-900/10 dark:hover:shadow-black/40"
-              >
-                <div>
-                  {/* Top row: Icon + Kind pill */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    {item.icon ? (
-                      <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white dark:bg-slate-800/90 border border-slate-200/85 dark:border-slate-700/80 shadow-sm p-1.5 flex items-center justify-center shrink-0">
-                        <img
-                          src={item.icon}
-                          alt={`${item.name} icon`}
-                          className="w-full h-full object-contain rounded-lg"
-                          loading="lazy"
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.accentGradient} text-white shadow-md flex items-center justify-center text-2xl shrink-0 border border-white/15`}
-                      >
-                        <span role="img" aria-label={item.name}>
-                          {item.emoji}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      {item.versionBadge && (
-                        <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-[#D46515] dark:bg-orange-500/20 dark:text-orange-300 border border-orange-200/80 dark:border-orange-500/30">
-                          {item.versionBadge}
-                        </span>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+            {filteredItems.map((item) => {
+              const isExpanded = expandedIds.has(item.id);
+              return (
+                <article
+                  key={item.id}
+                  data-tulip-perch="card"
+                  onClick={() => toggleExpanded(item.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleExpanded(item.id);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-expanded={isExpanded}
+                  className={`tulip-card flex flex-col justify-between rounded-3xl bg-white dark:bg-[#212734] border-2 p-5 sm:p-6 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#EA7824] ${
+                    isExpanded
+                      ? 'border-[#2857A4] dark:border-[#EA7824] shadow-lg shadow-slate-900/10 dark:shadow-black/40'
+                      : 'border-slate-200/85 dark:border-slate-700/75 hover:border-[#2857A4] dark:hover:border-[#EA7824] shadow-sm hover:shadow-xl hover:shadow-slate-900/10 dark:hover:shadow-black/40'
+                  }`}
+                >
+                  <div>
+                    {/* Top row: Icon + Kind pill + Expand chevron */}
+                    <div className="flex items-start justify-between gap-3 mb-3.5">
+                      {item.icon ? (
+                        <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white dark:bg-slate-800/90 border border-slate-200/85 dark:border-slate-700/80 shadow-sm p-1.5 flex items-center justify-center shrink-0">
+                          <img
+                            src={item.icon}
+                            alt={`${item.name} icon`}
+                            className="w-full h-full object-contain rounded-lg"
+                            loading="lazy"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.accentGradient} text-white shadow-md flex items-center justify-center text-2xl shrink-0 border border-white/15`}
+                        >
+                          <span role="img" aria-label={item.name}>
+                            {item.emoji}
+                          </span>
+                        </div>
                       )}
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
-                        {item.kindLabel}
-                      </span>
+
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
+                        {item.versionBadge && (
+                          <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-[#D46515] dark:bg-orange-500/20 dark:text-orange-300 border border-orange-200/80 dark:border-orange-500/30">
+                            {item.versionBadge}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+                          {item.kindLabel}
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className={`inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-transform duration-300 ${
+                            isExpanded ? 'rotate-180 text-[#2857A4] dark:text-[#EA7824]' : ''
+                          }`}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Title & Creator */}
+                    <h3 className="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white leading-snug">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs font-semibold text-[#2857A4] dark:text-[#6AA2FF] mt-0.5 mb-2">
+                      By {item.creator}
+                    </p>
+
+                    {/* Tagline */}
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">
+                      {item.tagline}
+                    </p>
+                  </div>
+
+                  {/* Smooth slide-open drawer: description, note, platform chips, and links */}
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                      isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="pt-3.5 space-y-3.5">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {item.description}
+                        </p>
+
+                        {item.note && (
+                          <p className="text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 rounded-xl px-3 py-1.5">
+                            💡 {item.note}
+                          </p>
+                        )}
+
+                        <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.platforms.map((platform) => (
+                              <span
+                                key={platform}
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/70"
+                              >
+                                {platform}
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            {item.links.map((link) => {
+                              const isRepo =
+                                link.url.includes('github.com') || link.url.includes('gitflic.ru');
+                              return (
+                                <a
+                                  key={link.url}
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${linkClassName(
+                                    link.variant
+                                  )} ${item.links.length === 1 ? 'w-full' : 'flex-1 min-w-[115px]'}`}
+                                >
+                                  {isRepo && link.variant === 'github' ? (
+                                    <Github className="w-3.5 h-3.5 shrink-0" />
+                                  ) : (
+                                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                  )}
+                                  <span className="truncate">{link.label}</span>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Title & Creator */}
-                  <h3 className="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white leading-snug">
-                    {item.name}
-                  </h3>
-                  <p className="text-xs font-semibold text-[#2857A4] dark:text-[#6AA2FF] mt-0.5 mb-2.5">
-                    By {item.creator}
-                  </p>
-
-                  {/* Tagline & Description */}
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1.5 leading-snug">
-                    {item.tagline}
-                  </p>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-                    {item.description}
-                  </p>
-
-                  {item.note && (
-                    <p className="text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 rounded-xl px-3 py-1.5 mb-4">
-                      💡 {item.note}
-                    </p>
-                  )}
-                </div>
-
-                {/* Footer: Platform tags + External links */}
-                <div className="pt-3.5 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {item.platforms.map((platform) => (
-                      <span
-                        key={platform}
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/70"
-                      >
-                        {platform}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {item.links.map((link) => {
-                      const isRepo =
-                        link.url.includes('github.com') || link.url.includes('gitflic.ru');
-                      return (
-                        <a
-                          key={link.url}
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${linkClassName(
-                            link.variant
-                          )} ${item.links.length === 1 ? 'w-full' : 'flex-1 min-w-[115px]'}`}
-                        >
-                          {isRepo && link.variant === 'github' ? (
-                            <Github className="w-3.5 h-3.5 shrink-0" />
-                          ) : (
-                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                          <span className="truncate">{link.label}</span>
-                        </a>
-                      );
-                    })}
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
 
