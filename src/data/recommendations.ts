@@ -473,6 +473,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     description:
       'Churches registered as not-for-profits can get Microsoft 365 Business Basic (including Microsoft Teams, Outlook, and OneDrive) for free through Microsoft Nonprofits — great for keeping elders, deacons, and ministry teams coordinated.',
     note: 'Free for eligible churches & not-for-profits via Microsoft Nonprofits',
+    icon: './recommended-icons/microsoft-teams.png',
     emoji: '💬',
     accentGradient: 'from-indigo-600 to-blue-700',
     platforms: ['Web', 'Win / Mac', 'iOS & Android'],
@@ -499,6 +500,7 @@ export const RECOMMENDED_ITEMS: RecommendedItem[] = [
     description:
       'Churches as registered not-for-profits can get Canva Pro for free through Canva for Nonprofits — unlocking premium templates, brand kits, background remover, and team folders for bulletins, sermon slides, and event graphics.',
     note: 'Canva Pro is free for eligible churches & not-for-profits',
+    icon: './recommended-icons/canva.png',
     emoji: '🎨',
     accentGradient: 'from-cyan-500 to-violet-600',
     platforms: ['Web', 'iOS & Android', 'Free for Nonprofits'],
