@@ -7,6 +7,7 @@ interface NavbarProps {
   theme: ThemeMode;
   onToggleTheme: () => void;
   onOpenDonate: () => void;
+  sunflowerMode?: boolean;
 }
 
 const NAV_LINKS = [
@@ -17,7 +18,7 @@ const NAV_LINKS = [
   { href: '#about', label: 'About Me' },
 ];
 
-export function Navbar({ theme, onToggleTheme, onOpenDonate }: NavbarProps) {
+export function Navbar({ theme, onToggleTheme, onOpenDonate, sunflowerMode = false }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -44,7 +45,7 @@ export function Navbar({ theme, onToggleTheme, onOpenDonate }: NavbarProps) {
               href={link.href}
               className="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-[#2857A4] dark:hover:text-white hover:bg-slate-100/90 dark:hover:bg-slate-700/60 transition-colors"
             >
-              {link.label}
+              {link.href === '#tulip-run' && sunflowerMode ? 'Sunflower Run 🌻' : link.label}
             </a>
           ))}
         </nav>
@@ -92,7 +93,7 @@ export function Navbar({ theme, onToggleTheme, onOpenDonate }: NavbarProps) {
               onClick={() => setMobileOpen(false)}
               className="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
-              {link.label}
+              {link.href === '#tulip-run' && sunflowerMode ? 'Sunflower Run 🌻' : link.label}
             </a>
           ))}
         </div>

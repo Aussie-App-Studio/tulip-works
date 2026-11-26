@@ -12,6 +12,7 @@ import type { ThemeMode } from '../hooks/useTheme';
 
 interface TulipRunnerProps {
   theme: ThemeMode;
+  sunflowerMode?: boolean;
 }
 
 type GameStatus = 'idle' | 'playing' | 'gameover';
@@ -106,7 +107,14 @@ const QUIPS: Record<ObstacleKind, string[]> = {
   ],
 };
 
-function getRank(score: number): string {
+function getRank(score: number, sunflowerMode = false): string {
+  if (sunflowerMode) {
+    if (score >= 1000) return 'Sunflower Grandmaster 👑';
+    if (score >= 600) return 'Ad-Blocker Legend 🛡️';
+    if (score >= 300) return 'Full Sun Bloom 🌻';
+    if (score >= 120) return 'Sunny Sprout 🌱';
+    return 'Golden Seed ✨';
+  }
   if (score >= 1000) return 'Tulip Grandmaster 👑';
   if (score >= 600) return 'Ad-Blocker Legend 🛡️';
   if (score >= 300) return 'Full Bloom 🌷';
@@ -353,6 +361,141 @@ function drawTulipHero(
     ctx.beginPath();
     ctx.arc(4.2, -37.2, 0.7, 0, Math.PI * 2);
     ctx.arc(10.2, -37.2, 0.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draws our takeover Sunflower Guy character for Sunflower Run!
+ */
+function drawSunflowerHero(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  bottomY: number,
+  ducking: boolean,
+  jumping: boolean,
+  dead: boolean,
+  stridePhase: number,
+  isDark: boolean
+) {
+  ctx.save();
+  const cx = Math.round(x + PLAYER_W / 2);
+  const bob = jumping || dead ? 0 : Math.abs(Math.sin(stridePhase)) * -3.5;
+
+  // Ground shadow
+  const airRatio = Math.max(0, 1 - (GROUND_Y - bottomY) / 130);
+  ctx.fillStyle = isDark ? 'rgba(0,0,0,0.35)' : 'rgba(24,32,47,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(cx, GROUND_Y + 3, 16 * airRatio, 4 * airRatio, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.translate(cx, Math.round(bottomY + bob));
+  if (ducking && !jumping) {
+    ctx.scale(1.18, 0.68);
+  } else if (jumping) {
+    ctx.rotate(-0.07);
+  } else if (dead) {
+    ctx.rotate(0.18);
+  }
+
+  const green = isDark ? '#4ADE80' : '#15803D';
+  const leafFill = isDark ? '#16A34A' : '#22C55E';
+  const gold = '#FACC15';
+
+  // Animated running feet
+  const leftLegAngle = dead ? 0.3 : jumping ? -0.5 : Math.sin(stridePhase) * 0.7;
+  const rightLegAngle = dead ? -0.3 : jumping ? 0.5 : Math.sin(stridePhase + Math.PI) * 0.7;
+
+  ctx.strokeStyle = green;
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Left leg
+  ctx.beginPath();
+  ctx.moveTo(-3.5, -12);
+  ctx.lineTo(-3.5 + Math.sin(leftLegAngle) * 10, -1 + Math.max(0, Math.cos(leftLegAngle) * -2));
+  ctx.stroke();
+
+  // Right leg
+  ctx.beginPath();
+  ctx.moveTo(3.5, -12);
+  ctx.lineTo(3.5 + Math.sin(rightLegAngle) * 10, -1 + Math.max(0, Math.cos(rightLegAngle) * -2));
+  ctx.stroke();
+
+  // Stem
+  ctx.beginPath();
+  ctx.moveTo(0, -11);
+  ctx.lineTo(0, -24);
+  ctx.stroke();
+
+  // Green leaf swooping right
+  ctx.fillStyle = leafFill;
+  ctx.beginPath();
+  ctx.moveTo(0, -12);
+  ctx.quadraticCurveTo(16, -12, 18, -25);
+  ctx.quadraticCurveTo(6, -24, 0, -12);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(2, -13);
+  ctx.lineTo(13, -21);
+  ctx.stroke();
+
+  // Sunflower head centered at (0, -38)
+  ctx.translate(0, -38);
+  for (let i = 0; i < 10; i++) {
+    ctx.save();
+    ctx.rotate((i * Math.PI * 2) / 10);
+    ctx.fillStyle = gold;
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(0, -14.5, 4.1, 7.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Dark brown seed disk face
+  ctx.fillStyle = '#78350F';
+  ctx.strokeStyle = '#92400E';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.arc(0, 0, 11.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Eyes
+  if (dead) {
+    ctx.strokeStyle = '#FEF9C3';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-3.5, -2.5);
+    ctx.lineTo(0.5, 1.5);
+    ctx.moveTo(0.5, -2.5);
+    ctx.lineTo(-3.5, 1.5);
+    ctx.moveTo(3, -2.5);
+    ctx.lineTo(7, 1.5);
+    ctx.moveTo(7, -2.5);
+    ctx.lineTo(3, 1.5);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#FEF9C3';
+    ctx.beginPath();
+    ctx.arc(-1.5, -0.5, 2.2, 0, Math.PI * 2);
+    ctx.arc(5, -0.5, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath();
+    ctx.arc(-0.9, -1, 0.9, 0, Math.PI * 2);
+    ctx.arc(5.6, -1, 0.9, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -696,10 +839,11 @@ function drawReformationBonus(
   ctx.restore();
 }
 
-export function TulipRunner({ theme }: TulipRunnerProps) {
+export function TulipRunner({ theme, sunflowerMode = false }: TulipRunnerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const themeRef = useRef<ThemeMode>(theme);
+  const sunflowerModeRef = useRef<boolean>(sunflowerMode);
   const mutedRef = useRef<boolean>(false);
   const canvasSizeRef = useRef({ cssW: 860, cssH: 260 });
   const pointerStartYRef = useRef<number | null>(null);
@@ -721,6 +865,10 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
   useEffect(() => {
     themeRef.current = theme;
   }, [theme]);
+
+  useEffect(() => {
+    sunflowerModeRef.current = sunflowerMode;
+  }, [sunflowerMode]);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -830,7 +978,12 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
     g.floatingTexts = [];
     g.shakeTime = 0;
     g.gameOverLock = 0;
-    spawnDust(PLAYER_X + PLAYER_W / 2, GROUND_Y, 8, ['#EA7824', '#2857A4', '#FBBF24']);
+    spawnDust(
+      PLAYER_X + PLAYER_W / 2,
+      GROUND_Y,
+      8,
+      sunflowerModeRef.current ? ['#FACC15', '#22C55E', '#D97706'] : ['#EA7824', '#2857A4', '#FBBF24']
+    );
     playSynth(audioCtxRef, mutedRef.current, 'jump');
     setScore(0);
     setQuip('');
@@ -1009,7 +1162,12 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
           g.vy = -590;
           g.jumpBuffer = 0;
           g.coyoteTimer = 0;
-          spawnDust(PLAYER_X + PLAYER_W / 2, GROUND_Y, 6, ['#EA7824', '#2857A4']);
+          spawnDust(
+            PLAYER_X + PLAYER_W / 2,
+            GROUND_Y,
+            6,
+            sunflowerModeRef.current ? ['#FACC15', '#22C55E'] : ['#EA7824', '#2857A4']
+          );
           playSynth(audioCtxRef, mutedRef.current, 'jump');
         }
 
@@ -1284,17 +1442,30 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
         drawObstacle(ctx, ob, now, isDark);
       }
 
-      // Draw Tulip hero
-      drawTulipHero(
-        ctx,
-        PLAYER_X,
-        g.playerY,
-        g.ducking,
-        g.playerY < GROUND_Y - 1,
-        g.status === 'gameover',
-        g.stridePhase,
-        isDark
-      );
+      // Draw runner hero (Tulip or Sunflower takeover!)
+      if (sunflowerModeRef.current) {
+        drawSunflowerHero(
+          ctx,
+          PLAYER_X,
+          g.playerY,
+          g.ducking,
+          g.playerY < GROUND_Y - 1,
+          g.status === 'gameover',
+          g.stridePhase,
+          isDark
+        );
+      } else {
+        drawTulipHero(
+          ctx,
+          PLAYER_X,
+          g.playerY,
+          g.ducking,
+          g.playerY < GROUND_Y - 1,
+          g.status === 'gameover',
+          g.stridePhase,
+          isDark
+        );
+      }
 
       // Draw particles
       for (const p of g.particles) {
@@ -1342,7 +1513,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
               </div>
               <div>
                 <h2 className="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white leading-tight flex items-center gap-2">
-                  <span>Tulip Run</span>
+                  <span>{sunflowerMode ? 'Sunflower Run' : 'Tulip Run'}</span>
                   <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2857A4] dark:text-sky-300">
                     Dodge the Bloatware
                   </span>
@@ -1417,7 +1588,11 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
                   triggerJumpRelease();
                 }
               }}
-              aria-label="Tulip Run mini-game canvas. Click or press Space to jump."
+              aria-label={
+                sunflowerMode
+                  ? 'Sunflower Run mini-game canvas. Click or press Space to jump.'
+                  : 'Tulip Run mini-game canvas. Click or press Space to jump.'
+              }
               className="block w-full h-[210px] sm:h-[250px] md:h-[260px] cursor-pointer focus:outline-none"
             />
 
@@ -1432,7 +1607,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
               >
                 <div className="px-6 py-4 rounded-2xl bg-white/95 dark:bg-[#1B212E]/95 border-2 border-[#EA7824]/60 shadow-xl space-y-2 max-w-sm">
                   <div className="font-display font-extrabold text-xl text-slate-900 dark:text-white">
-                    🌷 Tap or Press Space to Run!
+                    {sunflowerMode ? '🌻 Tap or Press Space to Run!' : '🌷 Tap or Press Space to Run!'}
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-300">
                     Jump over <strong>ADs</strong>, <strong>Cookie Banners</strong> &amp;{' '}
@@ -1457,7 +1632,7 @@ export function TulipRunner({ theme }: TulipRunnerProps) {
               >
                 <div className="px-6 py-4 rounded-2xl bg-white/95 dark:bg-[#1B212E]/95 border-2 border-slate-200 dark:border-slate-700 shadow-2xl space-y-2 max-w-sm">
                   <div className="text-xs font-bold uppercase tracking-wider text-[#EA7824]">
-                    {getRank(score)}
+                    {getRank(score, sunflowerMode)}
                   </div>
                   <div className="font-display font-extrabold text-xl text-slate-900 dark:text-white">
                     {quip || 'Bonked!'}

@@ -23,6 +23,7 @@ export function App() {
 
   const [selectedApp, setSelectedApp] = useState<TulipApp | null>(null);
   const [donateModal, setDonateModal] = useState<DonateModalState>({ open: false });
+  const [sunflowerTakeover, setSunflowerTakeover] = useState(false);
 
   // Gather all GitHub repos referenced by direct downloads so we can live-sync latest releases
   const releaseRepos = useMemo(() => {
@@ -49,11 +50,12 @@ export function App() {
 
   return (
     <div className="relative min-h-screen flex flex-col">
-      <TulipBuddy />
+      <TulipBuddy onSpeciesChange={(species) => setSunflowerTakeover(species === 'sunflower')} />
       <Navbar
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenDonate={() => setDonateModal({ open: true, mode: 'donate' })}
+        sunflowerMode={sunflowerTakeover}
       />
 
       <main className="flex-1">
@@ -63,6 +65,7 @@ export function App() {
           totalWipApps={IN_PRODUCTION_APPS.length}
           onSelectApp={setSelectedApp}
           onToggleTheme={toggleTheme}
+          sunflowerMode={sunflowerTakeover}
         />
 
         <AppCatalog
@@ -73,7 +76,7 @@ export function App() {
           onCheckoutApp={handleCheckoutApp}
         />
 
-        <TulipRunner theme={theme} />
+        <TulipRunner theme={theme} sunflowerMode={sunflowerTakeover} />
 
         <InProduction />
 

@@ -9,6 +9,7 @@ interface HeroProps {
   totalWipApps: number;
   onSelectApp: (app: TulipApp) => void;
   onToggleTheme: () => void;
+  sunflowerMode?: boolean;
 }
 
 export function Hero({
@@ -17,6 +18,7 @@ export function Hero({
   totalWipApps,
   onSelectApp,
   onToggleTheme,
+  sunflowerMode = false,
 }: HeroProps) {
   return (
     <section className="relative overflow-hidden bg-tulip-dots border-b border-slate-200/70 dark:border-slate-800/70">
@@ -82,7 +84,7 @@ export function Hero({
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-base bg-white dark:bg-[#212734] text-slate-900 dark:text-white border-2 border-slate-200 dark:border-slate-700 hover:border-[#2857A4] dark:hover:border-[#EA7824] shadow-xs active:scale-[0.98] transition-all"
               >
                 <Gamepad2 className="w-4 h-4 text-[#2857A4] dark:text-[#EA7824]" />
-                <span>Play Tulip Run</span>
+                <span>{sunflowerMode ? 'Play Sunflower Run' : 'Play Tulip Run'}</span>
               </a>
             </div>
 
