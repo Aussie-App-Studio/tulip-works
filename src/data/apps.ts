@@ -34,6 +34,7 @@ export const TULIP_APPS: TulipApp[] = [
       'Live battery % (Left, Right & Case) + offline settings sync',
     ],
     icon: './app-icons/murmur.svg',
+    banner: './app-banners/murmur.jpg',
     accentGradient: 'from-indigo-600 to-violet-600',
     fallbackEmoji: '🎧',
     platforms: ['windows', 'macos', 'linux', 'android'],
