@@ -521,45 +521,6 @@ export const TULIP_APPS: TulipApp[] = [
     },
   },
   {
-    id: 'updated-morning-and-evening',
-    name: 'Updated Morning & Evening',
-    tagline: 'Charles Spurgeon’s classic daily devotional — renewed in clear modern English.',
-    description:
-      '732 rich, Christ-centered morning and evening readings by Charles H. Spurgeon, carefully updated into crisp contemporary English (paired with the BSB Bible) — with a 1-tap toggle to compare against the original 1860s Victorian classic (KJV).',
-    highlights: [
-      'Modern contemporary English edition + original Victorian classic side-by-side',
-      '732 daily readings (every morning & evening, including Leap Day)',
-      '100% offline with zero internet permissions needed',
-      'Zero ads, zero accounts, zero subscriptions',
-    ],
-    icon: './app-icons/morning-evening.svg',
-    banner: './app-banners/morning-evening.jpg',
-    accentGradient: 'from-amber-600 to-rose-700',
-    fallbackEmoji: '☀️',
-    platforms: ['android'],
-    categories: ['android', 'bible-church'],
-    featured: true,
-    githubRepo: 'Updated-Morning-and-Evening',
-    githubUrl: 'https://github.com/Aussie-App-Studio/Updated-Morning-and-Evening',
-    storeLinks: [
-      {
-        label: 'Google Play',
-        store: 'play-store',
-        url: 'https://play.google.com/store/apps/details?id=com.jesse.updatedmorningandevening',
-      },
-      {
-        label: 'GitHub',
-        store: 'github',
-        url: 'https://github.com/Aussie-App-Studio/Updated-Morning-and-Evening',
-      },
-    ],
-    downloads: [],
-    pricing: {
-      type: 'free',
-      note: '100% Free & Offline',
-    },
-  },
-  {
     id: 'auto-context-wallpaper',
     name: 'Auto Context Smart Wallpaper',
     tagline: 'Your Android wallpaper adapts automatically to your day, weather & music.',
@@ -713,6 +674,21 @@ export const TULIP_APPS: TulipApp[] = [
  * ============================================================================
  */
 export const IN_PRODUCTION_APPS: InProductionApp[] = [
+  {
+    id: 'updated-morning-and-evening',
+    name: 'Updated Morning & Evening',
+    tagline: 'Charles Spurgeon’s classic daily devotional — renewed in clear modern English.',
+    description:
+      '732 rich, Christ-centered morning and evening readings by Charles H. Spurgeon, carefully updated into crisp contemporary English (paired with the BSB Bible) — with a 1-tap toggle to compare against the original 1860s Victorian classic (KJV).',
+    stage: 'In Development',
+    progress: 80,
+    platforms: ['android'],
+    accentColor: '#D97706',
+    icon: './app-icons/morning-evening.svg',
+    emoji: '☀️',
+    eta: 'Coming soon',
+    githubUrl: 'https://github.com/Aussie-App-Studio/Updated-Morning-and-Evening',
+  },
   {
     id: 'stow-cards',
     name: 'Stow Cards: Offline Wallet',
