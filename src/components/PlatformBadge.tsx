@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Globe, Monitor, Smartphone, Terminal, Chrome, Apple } from 'lucide-react';
 import type { PlatformId, TulipApp } from '../types';
 
@@ -77,6 +78,12 @@ export function AppIcon({
   app: Pick<TulipApp, 'name' | 'icon' | 'accentGradient' | 'fallbackEmoji'>;
   size?: 'sm' | 'md' | 'lg';
 }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    setImgFailed(false);
+  }, [app.icon]);
+
   const sizeClasses =
     size === 'sm'
       ? 'w-11 h-11 rounded-xl text-xl'
@@ -84,7 +91,7 @@ export function AppIcon({
         ? 'w-20 h-20 rounded-2xl text-4xl'
         : 'w-14 h-14 rounded-2xl text-2xl';
 
-  if (app.icon) {
+  if (app.icon && !imgFailed) {
     return (
       <div
         className={`${sizeClasses} shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-center`}
@@ -94,6 +101,7 @@ export function AppIcon({
           alt={`${app.name} icon`}
           className="w-full h-full object-cover"
           loading="lazy"
+          onError={() => setImgFailed(true)}
         />
       </div>
     );
@@ -101,9 +109,23 @@ export function AppIcon({
 
   return (
     <div
-      className={`${sizeClasses} shrink-0 bg-gradient-to-br ${app.accentGradient} text-white shadow-md flex items-center justify-center border border-white/20`}
+      className={`${sizeClasses} relative shrink-0 overflow-hidden bg-gradient-to-br ${app.accentGradient} text-white shadow-md ring-1 ring-inset ring-white/30 flex items-center justify-center select-none`}
     >
-      <span role="img" aria-label={app.name}>
+      {/* Subtle top-down glass sheen */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/30 via-white/5 to-black/15"
+      />
+      {/* Soft radial highlight */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-1/3 -left-1/3 w-full h-full rounded-full bg-white/20 blur-md"
+      />
+      <span
+        role="img"
+        aria-label={app.name}
+        className="relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.28)]"
+      >
         {app.fallbackEmoji || '🌷'}
       </span>
     </div>
