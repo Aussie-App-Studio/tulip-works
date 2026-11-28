@@ -1,0 +1,81 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewB
+ox="0 0 108 108" width="108" height="108" rol
+e="img" aria-label="Murmur app icon">
+  <defs
+>
+    <radialGradient id="bg-base" cx="54" cy
+="42" r="72" gradientUnits="userSpaceOnUse">
+
+      <stop offset="0%" stop-color="#1A1F26" 
+/>
+      <stop offset="65%" stop-color="#0E10
+14" />
+      <stop offset="100%" stop-color="
+#090B0E" />
+    </radialGradient>
+    <radial
+Gradient id="bg-glow" cx="54" cy="18" r="46" 
+gradientUnits="userSpaceOnUse">
+      <stop o
+ffset="0%" stop-color="#2DD4BF" stop-opacity=
+"0.16" />
+      <stop offset="100%" stop-colo
+r="#2DD4BF" stop-opacity="0" />
+    </radialG
+radient>
+    <clipPath id="squircle">
+      <
+rect x="0" y="0" width="108" height="108" rx=
+"24" ry="24" />
+    </clipPath>
+  </defs>
+  <
+g clip-path="url(#squircle)">
+    <rect x="0"
+ y="0" width="108" height="108" fill="url(#bg
+-base)" />
+    <rect x="0" y="0" width="108" 
+height="54" fill="url(#bg-glow)" />
+    <path
+
+      d="M34.5,58 V51 C34.5,38.8 43.2,30.5 5
+4,30.5 C64.8,30.5 73.5,38.8 73.5,51 V58"
+    
+  fill="none"
+      stroke="#F3F5F8"
+      st
+roke-width="4.4"
+      stroke-linecap="round"
+
+    />
+    <path
+      d="M33.2,52.5 C36.2,5
+2.5 38.2,54.6 38.2,57.8 V67.2 C38.2,70.4 36.2
+,72.5 33.2,72.5 C29.4,72.5 27,68.8 27,62.5 C2
+7,56.2 29.4,52.5 33.2,52.5 Z"
+      fill="#F3
+F5F8"
+    />
+    <path
+      d="M74.8,52.5 C7
+1.8,52.5 69.8,54.6 69.8,57.8 V67.2 C69.8,70.4
+ 71.8,72.5 74.8,72.5 C78.6,72.5 81,68.8 81,62
+.5 C81,56.2 78.6,52.5 74.8,52.5 Z"
+      fill
+="#F3F5F8"
+    />
+    <path
+      d="M47,57 V
+65 M54,52.5 V69.5 M61,57 V65"
+      fill="non
+e"
+      stroke="#2DD4BF"
+      stroke-width=
+"3.2"
+      stroke-linecap="round"
+    />
+  <
+/g>
+</svg>
+
+

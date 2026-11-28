@@ -22,6 +22,116 @@ import type { InProductionApp, TulipApp } from '../types';
 
 export const TULIP_APPS: TulipApp[] = [
   {
+    id: 'murmur',
+    name: 'Murmur: Headphone Controls',
+    tagline: 'Control your Sony, Bose, Soundcore, Galaxy Buds & AirPods — 100% offline.',
+    description:
+      'A fast, lightweight, strictly offline headphone control app for Windows, macOS, Linux, and Android. Switch Noise Cancelling and Ambient Sound modes, sculpt your EQ and bass, check live Left/Right/Case battery percentages, and toggle features like Speak-to-Chat, Wearing Detection, and Multipoint — with zero accounts, zero tracking, and zero internet required.',
+    highlights: [
+      'Supports Sony, Bose, Soundcore, Galaxy Buds & Apple AirPods',
+      'Noise Cancelling, Adaptive Audio, Transparency & 20-step Ambient Sound',
+      'Custom 5/8/10-band EQ, Clear Bass & saved sound profiles',
+      'Live battery % (Left, Right & Case) + offline settings sync',
+    ],
+    icon: './app-icons/murmur.svg',
+    accentGradient: 'from-indigo-600 to-violet-600',
+    fallbackEmoji: '🎧',
+    platforms: ['windows', 'macos', 'linux', 'android'],
+    categories: ['desktop', 'android', 'everyday'],
+    featured: true,
+    badge: 'Cross-Platform · Offline',
+    githubRepo: 'Murmur-Headphone-Control',
+    githubUrl: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control',
+    storeLinks: [
+      {
+        label: 'Android Page',
+        store: 'web',
+        url: 'https://aussie-app-studio.github.io/Murmur-Headphone-Control/',
+      },
+      {
+        label: 'Android GitHub',
+        store: 'github',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control',
+      },
+      {
+        label: 'Windows GitHub',
+        store: 'github',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control-PC',
+      },
+      {
+        label: 'macOS GitHub',
+        store: 'github',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control-Mac',
+      },
+      {
+        label: 'Linux GitHub',
+        store: 'github',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control-Linux',
+      },
+    ],
+    downloads: [
+      {
+        platform: 'windows',
+        label: 'Windows Portable (.exe)',
+        subtitle: 'Windows 10 & 11 · Single file, no installer needed',
+        githubRepo: 'Murmur-Headphone-Control-PC',
+        assetMatch: '\\.exe$',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control-PC/releases/latest/download/murmur.exe',
+        version: 'v1.0.0',
+        fileSize: '4.6 MB',
+        installHint:
+          'Run murmur.exe directly (if SmartScreen appears, click More info → Run anyway).',
+      },
+      {
+        platform: 'macos',
+        label: 'macOS Universal (.dmg)',
+        subtitle: 'macOS 12+ · Apple Silicon & Intel',
+        githubRepo: 'Murmur-Headphone-Control-Mac',
+        assetMatch: '\\.dmg$',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control-Mac/releases/latest/download/Murmur-macOS.dmg',
+        version: 'v1.0.0',
+        fileSize: '5.4 MB',
+        installHint:
+          'Open the .dmg, drag Murmur to Applications, and allow Bluetooth access when prompted.',
+      },
+      {
+        platform: 'linux',
+        label: 'Linux x86_64 (.tar.gz)',
+        subtitle: 'X11 & Wayland · Native Rust binary + .desktop launcher',
+        githubRepo: 'Murmur-Headphone-Control-Linux',
+        assetMatch: '\\.tar\\.gz$',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control-Linux/releases/latest/download/murmur-linux-x86_64.tar.gz',
+        version: 'v1.0.0',
+        fileSize: '4.4 MB',
+        installHint: 'Extract the archive and run the binary or included .desktop launcher.',
+      },
+      {
+        platform: 'android',
+        label: 'Android App (.apk)',
+        subtitle: 'Android 12+ · Zero internet permission',
+        githubRepo: 'Murmur-Headphone-Control',
+        assetMatch: '\\.apk$',
+        url: 'https://github.com/Aussie-App-Studio/Murmur-Headphone-Control/releases/latest/download/Murmur-v1.0.0.apk',
+        version: 'v1.0.0',
+        fileSize: '3.1 MB',
+        installHint:
+          'Tap the downloaded .apk on your Android phone, allow install from browser, and grant Nearby devices.',
+      },
+    ],
+    pricing: {
+      type: 'free',
+      note: '100% free, offline & open source across all platforms',
+    },
+    installSteps: {
+      title: 'Quick Setup',
+      steps: [
+        'Pair your headphones in your device Bluetooth settings.',
+        'Download Murmur for Windows, macOS, Linux, or Android below.',
+        'Open Murmur — your connected headphones appear right away, with zero sign-in or internet required.',
+      ],
+    },
+  },
+  {
     id: 'pix-relay',
     name: 'Pix Relay',
     tagline: 'Auto-sync your photos & videos to a backup Pixel over home Wi-Fi.',
@@ -149,19 +259,14 @@ export const TULIP_APPS: TulipApp[] = [
     githubUrl: 'https://github.com/Aussie-App-Studio/wallpaper-scheduler',
     storeLinks: [
       {
-        label: 'Microsoft Store',
-        store: 'microsoft-store',
-        url: 'https://apps.microsoft.com/detail/9N6PCZ8Z74LN',
+        label: 'GitHub',
+        store: 'github',
+        url: 'https://github.com/Aussie-App-Studio/wallpaper-scheduler',
       },
       {
         label: 'App Page',
         store: 'web',
         url: 'https://aussie-app-studio.github.io/wallpaper-scheduler/',
-      },
-      {
-        label: 'GitHub',
-        store: 'github',
-        url: 'https://github.com/Aussie-App-Studio/wallpaper-scheduler',
       },
     ],
     downloads: [
@@ -182,10 +287,10 @@ export const TULIP_APPS: TulipApp[] = [
       note: 'Free & open source forever · Tips always appreciated!',
     },
     installSteps: {
-      title: 'Two Easy Ways to Install',
+      title: 'Quick 30-Second Setup',
       steps: [
-        'Recommended: Grab it in one click from the Microsoft Store.',
-        'Or download the portable .zip directly from this site, unzip it, and double-click WallpaperScheduler.exe.',
+        'Download the portable .zip from GitHub or directly from this site.',
+        'Unzip the folder and double-click WallpaperScheduler.exe (no installer needed).',
         'Pick your day & night wallpapers (or folders) and let it run silently!',
       ],
     },
